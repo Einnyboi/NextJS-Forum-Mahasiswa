@@ -23,6 +23,7 @@ export default function CommunityCard({ community }: CommunityCardProps) {
         width={40}
         height={40}
         className="rounded-lg"
+        unoptimized
       />
       <div>
         <h3 className="font-semibold text-gray-900 dark:text-white">{name}</h3>

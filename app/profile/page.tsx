@@ -13,7 +13,7 @@ export default async function ProfilePage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className = "flex flex-col gap-8 lg:col-span-2">
             <ProfileHeader user={user}/>
-            <div className = "rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
+            <div className = "rounded-lg bg-secondary p-4 shadow-sm dark:bg-secondary">
                 <h2 className = "mb-4 text-xl font-bold text-gray-900 dark:text-white">
                     My Posts
                 </h2>
