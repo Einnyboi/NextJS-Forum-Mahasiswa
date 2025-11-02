@@ -172,7 +172,6 @@ const signup: React.FC = () =>
     };
 
     return (
-        // The background color from signup.css is applied globally via the style block
         <div className="flex justify-center items-start min-h-screen pt-20 pb-10 bg-[#c7d6d5]">
             <style jsx global>
             {`
