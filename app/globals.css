@@ -45,11 +45,20 @@ body
 .main-dashboard-layout
 {
     display: grid;
-    /* Desktop: Left Sidebar (280px) and Main Content (1fr) */
     grid-template-columns: 280px 1fr;
     grid-template-areas: "left-sidebar main-content";
-    gap: 2rem;
     width: 100%;
+}
+
+.card-default
+{
+  background: var(--white-color);
+  padding: 3rem 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(12, 18, 12, 0.1);
+  width: 97%;
+  max-width: 100%;
+  font-family: var(--main-font);
 }
 
 .left-sidebar

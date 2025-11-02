@@ -17,9 +17,7 @@ body {
 
 .main-dashboard-layout {
     display: grid;
-    /* Desktop: Left Sidebar (280px) and Main Content (1fr) */
     grid-template-columns: 280px 1fr;
     grid-template-areas: "left-sidebar main-content";
-    gap: 2rem;
     width: 100%;
 }
