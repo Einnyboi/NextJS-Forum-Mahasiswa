@@ -1,12 +1,15 @@
 'use client';
-import React, { useState, useCallback, useEffect } from 'react';
-import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, Auth, signInWithCustomToken, signInAnonymously } from 'firebase/auth';
-import { getFirestore, doc, setDoc, Firestore } from 'firebase/firestore';
+import React, { useState, useCallback } from 'react';
 
-declare const __app_id: string;
-declare const __firebase_config: string;
-declare const __initial_auth_token: string;
+interface UserData
+{
+    id: string;
+    fullName: string;
+    email: string;
+    password: string;
+    registrationDate: string;
+    role: string;
+}
 
 const validateName = (name: string): boolean =>
 {
@@ -27,6 +30,32 @@ interface ErrorState
     general?: string;
 }
 
+const getStoredUsers = (): UserData[] =>
+{
+    if (typeof window !== 'undefined')
+    {
+        try
+        {
+            const users = localStorage.getItem('foma_users');
+            return users ? JSON.parse(users) : [];
+        }
+        catch (e)
+        {
+            console.error("Error parsing users from localStorage:", e);
+            return [];
+        }
+    }
+    return [];
+};
+
+const saveUsers = (users: UserData[]) =>
+{
+    if (typeof window !== 'undefined')
+    {
+        localStorage.setItem('foma_users', JSON.stringify(users));
+    }
+};
+
 const signup: React.FC = () =>
 {
     const [fullName, setFullName] = useState('');
@@ -37,55 +66,6 @@ const signup: React.FC = () =>
     const [errors, setErrors] = useState<ErrorState>({});
     const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(false);
-
-    const [auth, setAuth] = useState<Auth | null>(null);
-    const [db, setDb] = useState<Firestore | null>(null);
-
-    useEffect(() =>
-    {
-        try
-        {
-            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-            if (Object.keys(firebaseConfig).length === 0)
-            {
-                console.error("Firebase config is missing.");
-                return;
-            }
-
-            const initializedApp = initializeApp(firebaseConfig);
-            const authInstance = getAuth(initializedApp);
-            const dbInstance = getFirestore(initializedApp);
-
-            setAuth(authInstance);
-            setDb(dbInstance);
-
-            const authenticate = async () =>
-            {
-                try
-                {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token)
-                    {
-                        await signInWithCustomToken(authInstance, __initial_auth_token);
-                    }
-                    else
-                    {
-                        await signInAnonymously(authInstance);
-                    }
-                    console.log("Firebase Auth initialized and user session established.");
-                }
-                catch (error)
-                {
-                    console.error("Firebase Authentication failed:", error);
-                }
-            };
-            authenticate();
-
-        }
-        catch (error)
-        {
-            console.error("Error initializing Firebase:", error);
-        }
-    }, []);
 
     const clearErrors = useCallback(() =>
     {
@@ -133,12 +113,6 @@ const signup: React.FC = () =>
         e.preventDefault();
         clearErrors();
 
-        if (!auth || !db)
-        {
-            setErrors({ general: 'Sistem tidak siap. Coba lagi.' });
-            return;
-        }
-
         if (!validateForm())
         {
             return;
@@ -148,27 +122,35 @@ const signup: React.FC = () =>
 
         try
         {
-            // FIREBASE AUTH: Replaces the local findUserByEmail check and array push/saveToStorage
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-            const userId = user.uid;
+            // 1. Get existing users from local storage
+            const existingUsers = getStoredUsers();
 
-            // FIRESTORE: Store additional user profile data (Mandatory for the environment)
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            const profileRef = doc(db, `artifacts/${appId}/users/${userId}/profiles`, userId);
+            // 2. Check if email is already in use
+            const emailExists = existingUsers.some(user => user.email === email);
 
-            const newUserProfile = {
-                name: fullName,
+            if (emailExists) {
+                setLoading(false);
+                // Matches the original Firebase error code check
+                setErrors({ email: 'Email sudah terdaftar!' });
+                return;
+            }
+
+            // 3. Create new user object (using email as a simple ID)
+            const newUser: UserData = {
+                id: email, 
+                fullName: fullName,
                 email: email,
+                password: password, 
                 registrationDate: new Date().toISOString(),
                 role: "user",
             };
 
-            await setDoc(profileRef, newUserProfile);
+            // 4. Add new user and save to local storage
+            existingUsers.push(newUser);
+            saveUsers(existingUsers);
 
-            // Success feedback (Replaces alert('Pendaftaran akun berhasil! Silakan login.'))
+            // Success feedback 
             setSuccessMessage('Pendaftaran akun berhasil! Silakan login.');
-            setLoading(false);
             
             // Clear form after successful sign up
             setFullName('');
@@ -177,27 +159,15 @@ const signup: React.FC = () =>
             setConfirmPassword('');
             
         }
-        catch (error: any)
+        catch (error)
+        {
+            // Handle unexpected local storage errors or parsing issues
+            console.error("Sign up error:", error);
+            setErrors({ general: 'Pendaftaran gagal. Gagal menyimpan data lokal.' });
+        }
+        finally
         {
             setLoading(false);
-            let errorMessage = 'Pendaftaran gagal. Silakan coba lagi.';
-
-            if (error.code === 'auth/email-already-in-use')
-            {
-                // Matches the original logic's check: "Email sudah terdaftar!"
-                setErrors({ email: 'Email sudah terdaftar!' });
-                return;
-            }
-            else if (error.code === 'auth/invalid-email')
-            {
-                setErrors({ email: 'Format email tidak valid!' });
-                return;
-            }
-            else
-            {
-                console.error("Sign up error:", error);
-            }
-            setErrors({ general: errorMessage });
         }
     };
 
