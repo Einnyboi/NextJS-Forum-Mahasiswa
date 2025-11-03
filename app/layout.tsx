@@ -28,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="light">
       <body className={`${poppins.variable} ${lato.variable} font-sans bg-primary`}>
         {/* Your Navbar and Sidebar would go here */}
         {children}
