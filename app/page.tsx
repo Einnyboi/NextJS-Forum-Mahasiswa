@@ -2,10 +2,6 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-
-import Navbar from "@/components/navbar";
-import Sidebar from "@/components/sidebar";
-import SignupForm from "./signup/page";
 // import LoginForm from "./login/page";
 
 const DefaultHomeContent = () =>
@@ -37,8 +33,6 @@ export default function Home()
 
     return (
       <div>
-          <Navbar onNavChange={setCurrentView} isLoggedIn={false}></Navbar>
-          
           <div className="container mx-auto px-4 py-8">
               <div className="flex min-h-screen gap-4">
                 <Sidebar />

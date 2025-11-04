@@ -27,6 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>hi</div>
+    <html lang="en">
+      <body className={`${poppins.variable} ${lato.variable} font-sans bg-primary`}>
+        {/* Your Navbar and Sidebar would go here */}
+        {children}
+      </body>
+    </html>
   );
 }
