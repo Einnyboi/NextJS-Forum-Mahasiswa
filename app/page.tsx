@@ -22,7 +22,7 @@ export default function Home()
       {
         if (currentView === 'signup')
         {
-          return <SignupForm />;
+          return;
         }
         // else if (currentView === 'login')
         // {
@@ -35,8 +35,6 @@ export default function Home()
       <div>
           <div className="container mx-auto px-4 py-8">
               <div className="flex min-h-screen gap-4">
-                <Sidebar />
-                
                 <div className="flex-1 px-6">
                     {renderMainContent()}
                 </div>
