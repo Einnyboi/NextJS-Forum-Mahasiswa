@@ -3,11 +3,11 @@ export interface HistoryItem {
     title: string;
     type: string;
     category: string;
-    content: string; // Properti yang dicari di baris 85
-    date: Date;     // Kunci untuk getTime() dan toLocaleDateString()
+    content: string; 
+    date: Date;     
     likes: number;
     replies: number;
-    url: string; // Properti yang dicari di baris 77
+    url: string; 
 }
 export const historyData :HistoryItem[]= [
   {
