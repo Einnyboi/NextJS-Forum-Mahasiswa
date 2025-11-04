@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 // 1. Import the fonts you need
 import { Poppins, Lato } from 'next/font/google';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import './globals.css';
 
 // 2. Configure them
@@ -28,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="light">
+    <html lang="en">
       <body className={`${poppins.variable} ${lato.variable} font-sans bg-primary`}>
         {/* Your Navbar and Sidebar would go here */}
         {children}
