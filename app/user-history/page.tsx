@@ -50,7 +50,7 @@ export default function HistoryPage() {
                                     id="filter-select"
                                     value={sortBy}
                                     onChange={handleSortChange}
-                                    className="p-1 border border-gray-300 rounded-md text-sm focus:ring-red-500 focus:border-red-500"
+                                    className="p-1 border border-gray-100 rounded-md text-[1rem]"
                                 >
                                     <option value="newest">Newest</option>
                                     <option value="oldest">Oldest</option>
