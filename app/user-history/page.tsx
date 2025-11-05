@@ -1,6 +1,6 @@
 'use client'
 import React from "react";
-import { historyData, HistoryItem } from "@/lib/historydata";
+import { historyData} from "@/lib/historydata";
 import { useState, useMemo } from "react";
 import Head from "next/head";
 import Link from "next/link";
@@ -44,7 +44,7 @@ export default function HistoryPage() {
                         <div className="flex justify-between items-center mb-10 pb-5 border-b border-gray-500">
                             <h2 className="text-[2.488rem] font-bold text-brand-black font-lato mb-0 ">History</h2>
                             <div className="flex items-center space-x-2 mt-5">
-                                <label htmlFor="filter-select" className="text-[1.2rem] text-brand-black ">Urutkan berdasarkan:</label>
+                                <label htmlFor="filter-select" className="text-[1.2rem] text-brand-black ">Sort by:</label>
                                 <select
                                     name="filter"
                                     id="filter-select"
