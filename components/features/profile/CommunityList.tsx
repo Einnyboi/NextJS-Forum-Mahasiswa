@@ -7,8 +7,8 @@ type CommunityListProps = {
 
 export default function CommunityList({ communities }: CommunityListProps) {
   return (
-    <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
-      <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+    <div className="rounded-[8px] bg-secondary p-4 shadow-sm">
+      <h2 className="mb-4 text-xl font-bold text-brand-black">
         Joined Communities
       </h2>
       
@@ -19,7 +19,7 @@ export default function CommunityList({ communities }: CommunityListProps) {
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-gray-500">
           You haven&apos;t joined any communities yet.
         </p>
       )}
