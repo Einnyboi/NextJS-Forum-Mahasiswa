@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 // 1. Import the fonts you need
-import { Poppins, Lato, Geist } from 'next/font/google';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { Poppins, Lato } from 'next/font/google';
 import './globals.css';
 
 const geistSans = Geist({
