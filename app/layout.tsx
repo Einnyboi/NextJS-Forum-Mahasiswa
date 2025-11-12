@@ -2,10 +2,13 @@ import type { Metadata } from 'next';
 // 1. Import the fonts you need
 import { Poppins, Lato } from 'next/font/google';
 import './globals.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+// 2. Configure them
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'], // Add the weights you'll use
+  variable: '--font-poppins', // This is for Tailwind
 });
 
 const lato = Lato({

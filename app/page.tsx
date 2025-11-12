@@ -2,13 +2,17 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import styles from "./page.module.css"
+import Navbar from "../components/features/important/navbar";
+import Sidebar from "../components/features/important/sidebar";
+import SignupForm from "./signup/page";
 // import LoginForm from "./login/page";
 
 const DefaultHomeContent = () =>
 (
-  <div className="rounded-lg bg-secondary p-6 shadow-sm">
-      <h3 className="mb-4 text-2xl font-bold text-brand-black">Welcome Back!</h3>
-      <p className="text-gray-600">Select an option from the sidebar to view your dashboard.</p>
+  <div className="card-default">
+      <h3 className="card-title">Welcome Back!</h3>
+      <p>Select an option from the sidebar to view your dashboard.</p>
   </div>
 );
 
@@ -22,7 +26,7 @@ export default function Home()
       {
         if (currentView === 'signup')
         {
-          return;
+          return <SignupForm />;
         }
         // else if (currentView === 'login')
         // {
@@ -33,9 +37,13 @@ export default function Home()
 
     return (
       <div>
-          <div className="container mx-auto px-4 py-8">
-              <div className="flex min-h-screen gap-4">
-                <div className="flex-1 px-6">
+          <Navbar onNavChange={setCurrentView} isLoggedIn={false}></Navbar>
+          
+          <div className="main-container">
+              <div className="main-dashboard-layout">
+                <Sidebar></Sidebar>
+                
+                <div className="main-content">
                     {renderMainContent()}
                 </div>
               </div>
