@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { User } from '@/lib/types';
 import Link from 'next/link'
+import Link from 'next/link'
 
 type ProfileHeaderProps = {
   user: User;
@@ -34,6 +35,12 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
       </div>
 
       <div>
+        <Link
+          href = "/user-details"
+          className = "rounded-lg bg-brand-red px-4 py-2 font-semibold text-secondary transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2"
+          >
+            Edit Profile
+          </Link>
         <Link
           href = "/user-details"
           className = "rounded-lg bg-brand-red px-4 py-2 font-semibold text-secondary transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2"

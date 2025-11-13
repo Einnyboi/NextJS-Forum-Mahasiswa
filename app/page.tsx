@@ -1,6 +1,9 @@
 'use client'
 
 import React, { useState } from "react";
+'use client'
+
+import React, { useState } from "react";
 import Image from "next/image";
 import styles from "./page.module.css"
 import Navbar from "@/components/layout/navbar";
