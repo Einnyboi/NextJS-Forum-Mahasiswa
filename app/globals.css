@@ -134,6 +134,28 @@ body
     border-right: 1px solid var(--border-color);
     height: 100%; 
 }
+/* efek untuk card aktivitas user history */
+.activity-post-card {
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: var(--primary-color) !important;
+    border-radius: 1rem !important; 
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+.activity-post-card:hover {
+    background-color: #b8c5c4 !important;
+    transform: translateY(-0.1rem); 
+    box-shadow: 0 0.5rem 1rem rgba(12, 18, 12, 0.15) !important; 
+}
+/* efek untuk judul post pada user history */
+.post-title a {
+    color: var(--secondary-color); 
+    text-decoration: none;
+    transition: color 0.2s ease; 
+}
+.post-title a:hover {
+    text-decoration: underline; 
+}
 
 /* RESPONSIVE ADJUSTMENTS (Mobile View) */
 @media (max-width: 1024px)
