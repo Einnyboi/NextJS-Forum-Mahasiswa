@@ -40,21 +40,21 @@ export default function HistoryPage() {
                 <title>History User</title>
             </Head>
 
-            <div className="min-h-screen bg-secondary py-10 font-sans">
-                <div className="max-w-4xl mx-auto p-4">
-                    <div className="mb-6">
+            <div className="min-vh-100 py-5">
+                <div className="container p-4">
+                    <div className="mb-4">
 
                         {/* Header dan Filter */}
-                        <div className="flex justify-between items-center mb-10 pb-5 border-b border-gray-500">
-                            <h2 className="text-[2.488rem] font-bold text-brand-black font-lato mb-0 ">History</h2>
-                            <div className="flex items-center space-x-2 mt-5">
-                                <label htmlFor="filter-select" className="text-[1.2rem] text-brand-black ">Sort by:</label>
+                        <div className="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom border-secondary-subtle">
+                            <h2 className="h2 fw-bold" style={{ fontSize: '2.488rem', fontFamily: 'var(--secondary-font)'}}>History</h2>
+                            <div className="d-flex align-items-center gap-2 mt-3">
+                                <label htmlFor="filter-select" className="fs-5 text-secondary">Sort by:</label>
                                 <select
                                     name="filter"
                                     id="filter-select"
                                     value={sortBy}
                                     onChange={handleSortChange}
-                                    className="p-1 border border-gray-100 rounded-md text-[1rem]"
+                                    className="form-select form-select-sm border rounded-3 fs-6" style={{ width: 'auto' }}
                                 >
                                     <option value="newest">Newest</option>
                                     <option value="oldest">Oldest</option>
@@ -73,23 +73,22 @@ export default function HistoryPage() {
                                 const formattedDate = post.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
                                 return ( 
-                                    <article className="bg-primary p-10 mb-5 rounded-xl text-brand-black bg-primary transition duration-300 ease-in-out 
-                                                        hover:bg-[#b8c5c4] hover:-translate-y-0.5 hover:shadow-xl font-sans" key={post.id}>
+                                    <article className="card activity-post-card p-5 mb-4 rounded-4" key={post.id}>
                                         
                                         {/* Baris Judul */}
-                                        <h5 className="text-[1.44rem] font-bold mb-1 text-brand-black hover:text-secondary font-lato pb-3"><Link href={post.url}>{post.title}</Link></h5>
+                                        <h5 className="post-title"><Link href={post.url}>{post.title}</Link></h5>
 
-                                        <div className="text-sm text-brand-black mb-2">
+                                        <div className="small text-secondary mb-2">
                                             {/* Tipe Aktivitas dan Kategori */}
-                                            <span className="font-semibold">{post.type}</span> in category 
-                                            <Link className="text-red-600 hover:underline ml-1 font-medium" id="kategori" href={`/category/${post.category}`}>{post.category}</Link>
+                                            <span className="fw-semibold">{post.type}</span> in category 
+                                            <Link className="text-danger hover-underline ms-1 fw-medium" id="kategori" href={`/category/${post.category}`}>{post.category}</Link>
                                         </div>
 
                                         {/* Konten/Excerpt */}
-                                        <p className="text-brand-black mb-3">{post.content}</p>
+                                        <p className="text-secondary mb-3">{post.content}</p>
 
                                         {/* Footer */}
-                                        <div className="pt-2 text-xs text-gray-800 border-t border-gray-500 flex space-x-2">
+                                        <div className="pt-2 small text-muted border-top border-secondary-subtle d-flex gap-2">
                                             <span>{formattedDate}</span> <span>|</span> <span>{post.likes} Likes</span> <span>|</span> <span>{post.replies} Replies</span>
                                         </div>
                                     </article>
