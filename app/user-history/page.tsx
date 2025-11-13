@@ -40,15 +40,15 @@ export default function HistoryPage() {
                 <title>History User</title>
             </Head>
 
-            <div className="min-vh-100 py-5">
+            <div className="min-vh-100 py-5" style={{ backgroundColor: 'var(--white-color)' }}>
                 <div className="container p-4">
                     <div className="mb-4">
 
                         {/* Header dan Filter */}
                         <div className="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom border-secondary-subtle">
-                            <h2 className="h2 fw-bold" style={{ fontSize: '2.488rem', fontFamily: 'var(--secondary-font)'}}>History</h2>
+                            <h2 className="h2 fw-bold" style={{ fontSize: '2.488rem', fontFamily: 'var(--h2-size)'}}>History</h2>
                             <div className="d-flex align-items-center gap-2 mt-3">
-                                <label htmlFor="filter-select" className="fs-5 text-secondary">Sort by:</label>
+                                <label htmlFor="filter-select" className="fs-5" style={{color:'var(--secondary-color)'}}>Sort by:</label>
                                 <select
                                     name="filter"
                                     id="filter-select"
@@ -73,10 +73,16 @@ export default function HistoryPage() {
                                 const formattedDate = post.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
                                 return ( 
-                                    <article className="card activity-post-card p-5 mb-4 rounded-4" key={post.id}>
+                                    <article className="card activity-post-card p-5 mb-4 rounded-4" style={{ backgroundColor: 'var(--primary-color)' }} key={post.id}>
                                         
                                         {/* Baris Judul */}
-                                        <h5 className="post-title"><Link href={post.url}>{post.title}</Link></h5>
+                                        <h5 className="post-title pb-2" style={{fontSize:'var(--h5-size)'}}>
+                                            <Link 
+                                                href={post.url}
+                                            >
+                                                {post.title}
+                                            </Link>
+                                        </h5>
 
                                         <div className="small text-secondary mb-2">
                                             {/* Tipe Aktivitas dan Kategori */}
@@ -85,10 +91,10 @@ export default function HistoryPage() {
                                         </div>
 
                                         {/* Konten/Excerpt */}
-                                        <p className="text-secondary mb-3">{post.content}</p>
+                                        <p className="mb-3" style={{color:'var(--secondary-color)'}}>{post.content}</p>
 
                                         {/* Footer */}
-                                        <div className="pt-2 small text-muted border-top border-secondary-subtle d-flex gap-2">
+                                        <div className="pt-2 small text-muted border-top border-secondary d-flex gap-2">
                                             <span>{formattedDate}</span> <span>|</span> <span>{post.likes} Likes</span> <span>|</span> <span>{post.replies} Replies</span>
                                         </div>
                                     </article>
