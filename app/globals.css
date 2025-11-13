@@ -23,10 +23,15 @@
     --caption-size: 0.694rem;
 }
 
+a {
+    color: var(#c7d6d5);
+    text-decoration: none;
+}
+
 body
 {
     font-family: var(--main-font);
-    background-color: var(--primary-color); 
+    background-color: var(--primary-color) !important; 
     color: var(--secondary-color);
     line-height: 1.6;
     padding-top: 72px !important; 
@@ -114,13 +119,6 @@ body
 .sidebar-link:hover
 {
     background-color: var(--primary-color);
-}
-
-.main-dashboard-layout
-{
-    display: flex;
-    flex-direction: row;
-    width: 100%;
 }
 
 .sidebar-card

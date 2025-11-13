@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import styles from "./page.module.css"
-import Navbar from "./components/navbar";
-import Sidebar from "./components/sidebar";
+import Navbar from "@/components/layout/navbar";
+import Sidebar from "@/components/layout/sidebar";
 import SignupForm from "./signup/page";
 // import LoginForm from "./login/page";
 

@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} ${lato.variable} font-sans bg-primary`}>
+      <body className={`${poppins.variable} ${lato.variable}`}>
         {/* Your Navbar and Sidebar would go here */}
         {children}
       </body>
