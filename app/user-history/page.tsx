@@ -19,13 +19,17 @@ export default function HistoryPage() {
 
         switch (sortBy) {
             case 'oldest':
+                // mengurutkan dari tanggal terlama ke terbaru
                 return sortableItems.sort((a, b) => a.date.getTime() - b.date.getTime());
             case 'most-likes':
+                // megurutkan dari yang paling banyak like
                 return sortableItems.sort((a, b) => b.likes - a.likes);
             case 'most-comments':
+                // mengurutkan dari yang paling banyak komentar
                 return sortableItems.sort((a, b) => b.replies - a.replies);
             case 'newest':
-            default:
+            default: // default untuk 'newest' 
+                // mengurutkan dari tanggal terbaru ke terlama
                 return sortableItems.sort((a, b) => b.date.getTime() - a.date.getTime());
         }
     }, [sortBy]);
