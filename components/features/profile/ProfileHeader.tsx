@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import { User } from '@/lib/types';
 import Link from 'next/link'
-import Link from 'next/link'
 
 type ProfileHeaderProps = {
   user: User;
