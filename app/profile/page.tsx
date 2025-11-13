@@ -2,6 +2,7 @@ import ProfileHeader from '@/components/features/profile/ProfileHeader';
 import CommunityList from '@/components/features/profile/CommunityList';
 import EventList from '@/components/features/profile/EventList';
 import { getProfileData } from '@/lib/data';
+import HistoryPage from '../user-history/page';
 
 export default async function ProfilePage() {
   const { user, communities, events } = await getProfileData();
@@ -18,7 +19,7 @@ export default async function ProfilePage() {
                     My Posts
                 </h2>
                 <p className = "text-gray-500 dark:text-gray-400">ww
-                    (post history later disini)
+                    <HistoryPage></HistoryPage>
                 </p>
             </div>
         </div>
@@ -27,7 +28,7 @@ export default async function ProfilePage() {
           <CommunityList communities={communities} />
           <EventList events={events} />
         </div>
-       </div>
+      </div>
     </main>
   );
 }
