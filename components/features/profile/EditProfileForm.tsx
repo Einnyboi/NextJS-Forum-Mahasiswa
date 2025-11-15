@@ -22,7 +22,7 @@ export default function EditProfileForm({ user }: EditProfileFormProps) {
         // 5. Wrap the action call in startTransition
         startTransition(() => updateUser(formData));
       }}
-      className="rounded-lg bg-secondary p-6 shadow-sm dark:bg-secondary"
+      className="rounded-lg bg-secondary p-6 shadow-sm dark:bg-brand-black"
     >
       {/* 6. Add a hidden input to send the user's ID */}
       <input type="hidden" name="id" value={user.id} />

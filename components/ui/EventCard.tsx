@@ -12,7 +12,7 @@ export default function EventCard({ event }: EventCardProps) {
   return (
     <Link
       href={href}
-      className="block rounded-lg bg-white p-4 shadow-sm transition-all hover:shadow-md dark:bg-gray-800 dark:hover:bg-gray-700"
+      className="block rounded-lg bg-secondary p-4 shadow-sm transition-all hover:shadow-md dark:bg-gray-800 dark:hover:bg-gray-700"
     >
       <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">
         {name}
