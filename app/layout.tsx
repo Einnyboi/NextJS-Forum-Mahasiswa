@@ -1,19 +1,21 @@
+// app/layout.tsx
 import type { Metadata } from 'next';
-// 1. Import the fonts you need
 import { Poppins, Lato } from 'next/font/google';
-import './globals.css';
 
-// 2. Configure them
+// 1. IMPORT BOOTSTRAP CSS
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+// 2. HAPUS './globals.css' JIKA KOSONG, ATAU BIARKAN
+import './globals.css'; 
+
+// initialize font instances so we can read the .variable property
 const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '600', '700'], // Add the weights you'll use
-  variable: '--font-poppins', // This is for Tailwind
+  subsets: ['latin'], variable: '--font-poppins',
+  weight: '100'
 });
-
 const lato = Lato({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-lato', // This is for Tailwind
+  subsets: ['latin'], variable: '--font-lato',
+  weight: '100'
 });
 
 export const metadata: Metadata = {
@@ -21,15 +23,11 @@ export const metadata: Metadata = {
   description: 'A forum for university students.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode; }) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} ${lato.variable} font-sans bg-primary`}>
-        {/* Your Navbar and Sidebar would go here */}
+      {/* 3. HAPUS SEMUA KELAS TAILWIND DARI BODY */}
+      <body className={`${poppins.variable} ${lato.variable}`}>
         {children}
       </body>
     </html>

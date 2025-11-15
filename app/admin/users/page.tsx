@@ -13,7 +13,7 @@ export default function ManageUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    // Simulasi data
+    // Simulasi data (ini tidak berubah)
     const mockUsers: User[] = [
       { id: 101, name: 'Budi Santoso', email: 'budi.s@example.com', role: 'User' },
       { id: 102, name: 'Citra Lestari', email: 'citra.l@example.com', role: 'User' },
@@ -24,48 +24,49 @@ export default function ManageUsersPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-6">
+    // Ganti 'flex flex-col gap-6' dengan padding Bootstrap
+    <div className="py-2">
       
-      {/* Header Halaman: Ubah ke text-secondary (hitam) */}
-      <h2 className="text-3xl font-bold text-secondary">
+      {/* Header Halaman (Bootstrap) */}
+      <h2 className="h2 fw-bold mb-4">
         Kelola Pengguna
       </h2>
 
-      {/* Card Putih Utama: Ubah ke bg-white-custom */}
-      <div className="rounded-lg bg-white-custom p-6 shadow-md">
+      {/* Ganti 'rounded-lg bg-white-custom...' dengan 'card' Bootstrap */}
+      <div className="card shadow-sm p-4">
         
-        {/* Sub-header: Ubah ke text-secondary (hitam) */}
-        <h3 className="mb-4 text-xl font-semibold text-secondary">Daftar Pengguna Aktif</h3>
+        {/* Sub-header (Bootstrap) */}
+        <h3 className="h5 fw-semibold mb-3">Daftar Pengguna Aktif</h3>
 
-        {/* Tabel */}
-        <div className="overflow-x-auto">
-          {/* Pastikan teks tabel defaultnya hitam (text-secondary) */}
-          <table className="w-full min-w-full text-left text-secondary">
+        {/* Tabel (Bootstrap) */}
+        <div className="table-responsive">
+          {/* Tambahkan kelas 'table' dan 'table-hover' */}
+          <table className="table table-hover align-middle">
             <thead>
-              {/* Header Tabel: Buat abu-abu muda */}
-              <tr className="border-b-2 border-gray-200 bg-gray-50 text-gray-600">
-                <th className="px-4 py-3 font-semibold">ID</th>
-                <th className="px-4 py-3 font-semibold">Nama</th>
-                <th className="px-4 py-3 font-semibold">Email</th>
-                <th className="px-4 py-3 font-semibold">Peran</th>
-                <th className="px-4 py-3 font-semibold">Aksi</th>
+              {/* Header Tabel (Bootstrap) */}
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Nama</th>
+                <th scope="col">Email</th>
+                <th scope="col">Peran</th>
+                <th scope="col">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
-                <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-3">{user.id}</td>
-                  <td className="px-4 py-3">{user.name}</td>
-                  <td className="px-4 py-3">{user.email}</td>
-                  <td className="px-4 py-3">{user.role}</td>
+                <tr key={user.id}>
+                  <td>{user.id}</td>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>{user.role}</td>
                   <td>
-                    {/* Tombol Aksi (Gaya Tailwind) */}
-                    <div className="flex gap-2">
-                      <button className="rounded bg-blue-500 px-4 py-1 text-sm font-medium text-white hover:bg-blue-600">
+                    {/* Tombol Aksi (Gaya Bootstrap) */}
+                    {/* Ganti 'flex gap-2' dengan 'gap-2' Bootstrap */}
+                    <div className="d-flex gap-2">
+                      <button className="btn btn-primary btn-sm">
                         Edit
                       </button>
-                      {/* Tombol Hapus: Gunakan bg-error */}
-                      <button className="rounded bg-error px-4 py-1 text-sm font-medium text-white hover:brightness-90">
+                      <button className="btn btn-danger btn-sm">
                         Hapus
                       </button>
                     </div>
