@@ -15,7 +15,7 @@ export default function CommunityCard({ community }: CommunityCardProps) {
   return (
     <Link
       href={`/community/${community.id}`} // Assuming this is the route
-      className="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm transition-all hover:shadow-md dark:bg-gray-800 dark:hover:bg-gray-700"
+      className="flex items-center gap-3 rounded-lg bg-primary p-3 shadow-sm transition-all hover:bg-brand-red hover:text-secondary"
     >
       <Image
         src={displayImage}

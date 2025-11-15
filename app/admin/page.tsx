@@ -1,46 +1,58 @@
 import React from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Ini adalah halaman default untuk rute '/admin'
 export default function AdminDashboardPage() {
   return (
-    <div className="flex flex-col gap-6">
+    // 'py-2' adalah padding atas/bawah ringan dari Bootstrap
+    <div className="py-2">
       
-      {/* Header Halaman: Ubah ke text-secondary (hitam) */}
-      <h2 className="text-3xl font-bold text-secondary">
+      {/* Header Halaman (Bootstrap) */}
+      <h2 className="h2 fw-bold mb-4">
         Dashboard
       </h2>
 
-      {/* Kartu Selamat Datang: Ubah ke bg-white-custom */}
-      <div className="rounded-lg bg-white-custom p-6 shadow-md">
-        {/* Ubah teks ke text-secondary (hitam) */}
-        <h3 className="mb-4 text-xl font-semibold text-secondary">Selamat Datang, Admin!</h3>
-        <p className="text-gray-600">
-          Pilih menu dari navigasi di atas untuk mulai mengelola konten dan pengguna.
-        </p>
+      {/* Kartu Selamat Datang (Bootstrap 'card') */}
+      <div className="card shadow-sm mb-4">
+        <div className="card-body p-4">
+          <h3 className="h5 fw-semibold mb-3">Selamat Datang, Admin!</h3>
+          <p className="text-muted">
+            Pilih menu dari navigasi di atas untuk mulai mengelola konten dan pengguna.
+          </p>
+        </div>
       </div>
 
-      {/* Grid Kartu Statistik */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* Grid Kartu Statistik (Bootstrap 'row' dan 'col') */}
+      <div className="row g-4">
         
-        {/* Kartu Stat 1: Ubah ke bg-white-custom */}
-        <div className="rounded-lg bg-white-custom p-4 shadow-md">
-          <h4 className="text-sm font-medium text-gray-500">Total Pengguna</h4>
-          {/* Ubah angka ke text-secondary (hitam) */}
-          <p className="text-3xl font-bold text-secondary">104</p>
+        {/* Kartu Stat 1 */}
+        <div className="col-md-4">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h4 className="card-title text-muted h6">Total Pengguna</h4>
+              <p className="card-text h3 fw-bold">104</p>
+            </div>
+          </div>
         </div>
         
-        {/* Kartu Stat 2: Ubah ke bg-white-custom */}
-        <div className="rounded-lg bg-white-custom p-4 shadow-md">
-          <h4 className="text-sm font-medium text-gray-500">Total Konten</h4>
-          {/* Ubah angka ke text-secondary (hitam) */}
-          <p className="text-3xl font-bold text-secondary">42</p>
+        {/* Kartu Stat 2 */}
+        <div className="col-md-4">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h4 className="card-title text-muted h6">Total Konten</h4>
+              <p className="card-text h3 fw-bold">42</p>
+            </div>
+          </div>
         </div>
 
-        {/* Kartu Stat 3: Ubah ke bg-white-custom */}
-        <div className="rounded-lg bg-white-custom p-4 shadow-md">
-          <h4 className="text-sm font-medium text-gray-500">Event Menunggu</h4>
-          {/* Ubah angka ke text-secondary (hitam) */}
-          <p className="text-3xl font-bold text-secondary">3</p>
+        {/* Kartu Stat 3 */}
+        <div className="col-md-4">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h4 className="card-title text-muted h6">Event Menunggu</h4>
+              <p className="card-text h3 fw-bold">3</p>
+            </div>
+          </div>
         </div>
 
       </div>

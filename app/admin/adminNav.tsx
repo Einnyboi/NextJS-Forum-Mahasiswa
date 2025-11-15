@@ -14,45 +14,50 @@ export default function AdminNav() {
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     if (isActive(path)) {
-      e.preventDefault(); // Mencegah refresh jika sudah di halaman tsb
+      e.preventDefault(); // Mencegah refresh
     }
   };
 
-  // Definisikan style Tailwind
-  const baseLinkStyle = "px-3 py-2 font-medium text-secondary rounded-t-md transition-colors duration-150";
-  const activeLinkStyle = "bg-primary font-semibold"; // Efek "menyatu"
-  const inactiveLinkStyle = "hover:bg-gray-200";
-
   return (
-    // Bar Navigasi (Putih)
-    <nav className="flex flex-row justify-center gap-4 bg-white-custom p-2 px-4 shadow-sm">
+    /* FIX: Kelas 'justify-content-center' akan memusatkan semua link.
+      'nav-pills' memberikan efek 'box' biru pada link yang aktif.
+      'bg-light' memberikan background abu-abu muda pada bar navigasi.
+    */
+    <nav className="nav nav-pills justify-content-center bg-light p-2 shadow-sm">
+      
       <Link
         href="/admin"
-        className={`${baseLinkStyle} ${isActive('/admin') ? activeLinkStyle : inactiveLinkStyle}`}
+        // 'nav-link' adalah kelas link Bootstrap
+        // 'active' akan ditambahkan secara otomatis jika link aktif
+        className={`nav-link ${isActive('/admin') ? 'active' : ''}`}
         onClick={(e) => handleClick(e, '/admin')}
       >
         Dashboard
       </Link>
+      
       <Link
         href="/admin/users"
-        className={`${baseLinkStyle} ${isActive('/admin/users') ? activeLinkStyle : inactiveLinkStyle}`}
+        className={`nav-link ${isActive('/admin/users') ? 'active' : ''}`}
         onClick={(e) => handleClick(e, '/admin/users')}
       >
         Kelola Pengguna
       </Link>
+      
       <Link
         href="/admin/content"
-        className={`${baseLinkStyle} ${isActive('/admin/content') ? activeLinkStyle : inactiveLinkStyle}`}
+        className={`nav-link ${isActive('/admin/content') ? 'active' : ''}`}
         onClick={(e) => handleClick(e, '/admin/content')}
       >
         Kelola Konten
       </Link>
+      
       <Link
         href="/"
-        className={`${baseLinkStyle} ${inactiveLinkStyle}`}
+        className="nav-link" // Link "Kembali" tidak perlu status aktif
       >
         Kembali ke Situs
       </Link>
+
     </nav>
   );
 }
