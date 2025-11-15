@@ -2,6 +2,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { categories, popularSearch, fetchResults } from '@/lib/searchdata';
+import { Search } from 'lucide-react';
 
 type SearchResult = {
   id: number;
@@ -83,61 +84,81 @@ export default function SearchPage() {
   const showResults = !!currentQuery; // Tanda (!!) mengubah string/null menjadi boolean
 
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: 'auto' }}>
-
-      {/*FORM PENCARIAN */}
-      <form onSubmit={handleSubmit}
-        style={{ 
-            display: 'flex',
-            gap: '5px' 
-          }}
+    <div
+      className="p-4 mx-auto"
+      style={{
+        maxWidth: '600px',
+      }}
+    >
+      {/*FORM PENCARIAN*/}
+      <form 
+        onSubmit={handleSubmit} 
+        className="mb-3"
       >
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          placeholder="Searching for something?"
-          style={{ 
-            width: '100%', 
-            padding: '10px', 
-            fontSize: '16px' }}
-        />
-        <button type="submit" 
-          style={{ 
-            width: '40px', 
-            padding: '5px', 
-            marginTop: '5px'
-          }}
-        >
-          Search
-        </button>
+        <div className="position-relative">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            placeholder="Searching for something?"
+            className="form-control search-input-no-focus"
+            style={{
+              padding:'15px',
+              borderRadius: '50px', 
+              paddingRight: '3rem', 
+            }}
+          />
+          <button
+            type="submit"
+            title="Search"
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: '15px', 
+              transform: 'translateY(-50%)', 
+              background: 'none',
+              border: 'none',
+              color: '#6c757d' 
+            }}
+          >
+            <Search size={25} />
+          </button>
+        </div>
       </form>
-      
+
       {/*BAGIAN SUGGESTIONS */}
       {showSuggestions && (
-        <div className="suggestions" style={{ border: '1px solid #ccc', padding: '10px', marginTop: '10px' }}>
-          <h3>Popular Categories</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {categories.map(category => (
-              <li 
-                key={category} 
+        <div
+          className="suggestions border bg-white p-3 ms-4 me-auto" 
+          style={{
+            maxWidth: '500px',
+            marginTop:'-20px'
+          }}
+        >
+          <h3 className="h5">Popular Categories</h3>
+          <ul className="list-unstyled p-0"> 
+            {categories.map((category) => (
+              <li
+                key={category}
                 onClick={() => handleSuggestionClick(category)}
-                style={{ cursor: 'pointer', padding: '5px 0' }}
+                className="suggestion-item py-1" 
+                style={{ cursor: 'pointer', fontSize: '0.9rem' }} 
               >
                 {category}
               </li>
             ))}
           </ul>
-          <hr />
-          <h3>Popular Searches</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {popularSearch.map(term => (
-              <li 
-                key={term} 
+          <hr className="my-3" />
+          <h3 className="h5">Popular Searches</h3>
+          <ul className="list-unstyled p-0"> 
+            {popularSearch.map((term) => (
+              <li
+                key={term}
                 onClick={() => handleSuggestionClick(term)}
-                style={{ cursor: 'pointer', padding: '5px 0' }}
+                className="suggestion-item py-1" 
+                style={{ cursor: 'pointer', fontSize: '0.9rem' }} 
               >
                 {term}
               </li>
@@ -148,25 +169,34 @@ export default function SearchPage() {
 
       {/* HASIL PENCARIAN*/}
       {showResults && (
-        <div className="results" style={{ marginTop: '20px' }}>
+        <div
+          className="results border bg-white p-3 ms-4 me-auto" 
+          style={{
+            maxWidth: '500px', 
+            marginTop:'-20px'
+          }}
+        >
           {isLoading ? (
             <p>Searching...</p>
           ) : (
             <>
-              <h2>{`Results for: "${currentQuery}"`}</h2>
+              <h2 className="h6"> 
+                {`Results for: "${currentQuery}"`}
+              </h2>
               {results.length > 0 ? (
-                <ul style={{ listStyle: 'none', padding: 0 }}>
-                  {results.map(content => (
-                    <li key={content.id} 
-                      style={{ 
-                        border: '1px solid #eee', 
-                        padding: '10px', 
-                        marginBottom: '10px' 
-                      }}
+                <ul className="list-unstyled p-0"> 
+                  {results.map((content) => (
+                    <li
+                      key={content.id}
+                      className="item-search p-3 m-2" 
                     >
-                      <h3>{content.title}</h3>
-                      <p>{content.description}</p>
-                      <p>{content.author}</p>
+                      <h3 className="h6">{content.title}</h3> 
+                      <p className="mb-1">
+                        <small>{content.description}</small>
+                      </p>
+                      <p className="mb-0">
+                        <small>by: {content.author}</small> 
+                      </p>
                     </li>
                   ))}
                 </ul>
