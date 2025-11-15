@@ -1,33 +1,33 @@
 import ProfileHeader from '@/components/features/profile/ProfileHeader';
 import CommunityList from '@/components/features/profile/CommunityList';
 import EventList from '@/components/features/profile/EventList';
+import ProfilePosts from '@/components/features/profile/ProfilePosts';
 import { getProfileData } from '@/lib/data';
+
+// Keep this file a server component (async) — move client-only UI (react-bootstrap) into client components
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 export default async function ProfilePage() {
   const { user, communities, events } = await getProfileData();
 
   return (
-    <main className="container mx-auto p-4">
-      {/* disini nanti call navbar nya naomi */}
+    <Container className="main-container">
+      <Row>
+        {/* --- KOLOM KIRI (Main Content) --- */}
+        <Col lg={8}>
+          <ProfileHeader user={user} />
+          
+          <ProfilePosts />
+        </Col>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className = "flex flex-col gap-8 lg:col-span-2">
-            <ProfileHeader user={user}/>
-            <div className = "rounded-lg bg-secondary p-4 shadow-sm dark:bg-brand black">
-                <h2 className = "mb-4 text-xl font-bold text-gray-900 dark:text-white">
-                    My Posts
-                </h2>
-                <p className = "text-gray-500 dark:text-gray-400">ww
-                    (post history later disini)
-                </p>
-            </div>
-        </div>
-
-        <div className="flex flex-col gap-8 lg:col-span-1">
+        {/* --- KOLOM KANAN (Sidebar) --- */}
+        <Col lg={4}>
           <CommunityList communities={communities} />
           <EventList events={events} />
-        </div>
-       </div>
-    </main>
+        </Col>
+      </Row>
+    </Container>
   );
 }

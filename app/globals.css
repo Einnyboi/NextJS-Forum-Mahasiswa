@@ -76,6 +76,12 @@ body
     grid-area: main-content;
 }
 
+.btn-primary
+{
+    background-color : var(--error-red);
+    
+}
+
 /* components/Card.tsx*/
 .card-widget
 {
@@ -134,6 +140,9 @@ body
     border-right: 1px solid var(--border-color);
     height: 100%; 
 }
+
+/* .components/features/profile */
+/* CommunityList.tsx */
 
 /* RESPONSIVE ADJUSTMENTS (Mobile View) */
 @media (max-width: 1024px)
