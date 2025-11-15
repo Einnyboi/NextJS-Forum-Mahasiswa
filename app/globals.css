@@ -156,6 +156,19 @@ body
 .post-title a:hover {
     text-decoration: underline; 
 }
+/* untuk search */
+.suggestion-item {
+    text-decoration: none; 
+}
+.suggestion-item:hover {
+    text-decoration: underline; 
+    font-weight: bold;
+}
+.search-input-no-focus:focus {
+  box-shadow: none !important;
+  outline: none !important;
+  border-color: #ced4da !important; 
+}
 
 /* RESPONSIVE ADJUSTMENTS (Mobile View) */
 @media (max-width: 1024px)
