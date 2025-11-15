@@ -4,6 +4,8 @@ export type User = {
   name: string;
   avatarUrl: string;
   joinDate: string;
+  joinedCommunityIds? : string[];
+  rsvpEventIds? : string[];
 };
 
 // You need this for your community list
@@ -17,7 +19,7 @@ export type Community = {
 export type Event = {
   id: string;
   name: string;
-  date: string; // Using string for simplicity, can be Date object
+  date: string;
   communityName: string; // To show where the event is
   href: string;
 };
