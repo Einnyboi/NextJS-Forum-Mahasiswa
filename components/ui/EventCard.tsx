@@ -1,30 +1,33 @@
+'use client';
+
 import { Event } from '@/lib/types';
 import Link from 'next/link';
-import { CalendarIcon, MapPinIcon } from '@heroicons/react/24/outline'; // Using icons
+import Card from 'react-bootstrap/Card';
+import { Calendar, MapPin } from 'lucide-react';
 
 type EventCardProps = {
   event: Event;
 };
 
 export default function EventCard({ event }: EventCardProps) {
-  const { name, date, communityName, href } = event;
-
   return (
-    <Link
-      href={href}
-      className="block rounded-lg bg-white p-4 shadow-sm transition-all hover:shadow-md dark:bg-gray-800 dark:hover:bg-gray-700"
-    >
-      <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">
-        {name}
-      </h3>
-      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-        <CalendarIcon className="h-4 w-4" />
-        <span>{date}</span>
-      </div>
-      <div className="mt-1 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-        <MapPinIcon className="h-4 w-4" />
-        <span>{communityName}</span>
-      </div>
+    <Link href={event.href} className="text-decoration-none">
+      <Card className="border-0 shadow-sm mb-2 hover-effect">
+        <Card.Body>
+          <h6 className="fw-bold text-dark mb-2">{event.name}</h6>
+          
+          <div className="d-flex align-items-center text-muted small gap-3">
+            <div className="d-flex align-items-center gap-1">
+              <Calendar size={14} />
+              <span>{event.date}</span>
+            </div>
+            <div className="d-flex align-items-center gap-1">
+              <MapPin size={14} />
+              <span>{event.communityName}</span>
+            </div>
+          </div>
+        </Card.Body>
+      </Card>
     </Link>
   );
 }
