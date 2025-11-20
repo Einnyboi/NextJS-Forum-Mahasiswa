@@ -61,13 +61,13 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
             return (
                 <Nav className="d-flex align-items-center signin">
                     <Button 
-                        className='loginBtn'
+                        className='lgnBtn'
                         onClick={handleLoginClick}
                     >
                         Login
                     </Button>
                     <Button 
-                        className='loginBtn'
+                        className='lgnBtn'
                         onClick={handleSignupClick}
                     >
                         Sign Up
@@ -187,7 +187,7 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                     position: relative;
                 }
 
-                .loginBtn
+                .lgnBtn
                 {
                     padding: 0.5rem 0.2rem;
                     border-radius: 50px;
@@ -199,14 +199,14 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                     transition: all 0.3s ease;
                 }
 
-                .loginBtn
+                .lgnBtn
                 {
                     background-color: transparent;
                     color: var(--secondary-color);
                     border: 2px solid var(--primary-color);
                 }
 
-                .loginBtn:hover
+                .lgnBtn:hover
                 {
                     background-color: var(--primary-color);
                     color: var(--secondary-color);

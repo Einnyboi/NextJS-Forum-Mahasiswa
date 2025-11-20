@@ -135,7 +135,7 @@ const Login: React.FC = () => {
                 }
 
                 .form-group label {
-                    display: block;
+                    display: block
                     font-weight: 600;
                     margin-bottom: 0.5rem;
                     color: var(--secondary-color);
