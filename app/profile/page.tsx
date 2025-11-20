@@ -11,12 +11,17 @@ import { getProfileData } from '@/lib/data';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Navbar from '@/components/layout/navbar';
+import Sidebar from '@/components/layout/sidebar';
 
 export default async function ProfilePage() {
   const { user, communities, events } = await getProfileData();
 
   return (
-    <Container className="main-container">
+    <div>
+      <Navbar onNavChange={() => {}} isLoggedIn={true} />
+
+      <Container className="main-container">
       <Row>
         <Col lg={8}>
           <ProfileHeader user={user} />
@@ -29,10 +34,12 @@ export default async function ProfilePage() {
         </Col>
 
         <Col lg={4}>
+          <Sidebar />
           <CommunityList communities={communities} />
           <EventList events={events} />
         </Col>
       </Row>
-    </Container>
+      </Container>
+    </div>
   );
 }
