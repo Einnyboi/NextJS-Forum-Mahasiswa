@@ -1,3 +1,7 @@
+// lib/historydata.ts
+// this is just mock data for user activity history
+// i can remove this file later and fetch from db
+
 export interface HistoryItem {
     id: number;
     title: string;
