@@ -1,13 +1,13 @@
 'use client';
 import React, { useState, useCallback } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { FirebaseError } from 'firebase/app';
+import { db } from '@/lib/firebase';
+import { addDoc, collection } from "firebase/firestore";
 
 interface UserProfileData
 {
     fullName: string;
+    email: string;
+    password: string;
     registrationDate: string;
     role: string;
 }
@@ -97,17 +97,16 @@ const signup: React.FC = () =>
 
         try
         {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-
             const newUserProfile: UserProfileData =
             {
                 fullName: fullName,
+                email: email,
+                password: password,
                 registrationDate: new Date().toISOString(),
                 role: "user", 
             };
 
-            await setDoc(doc(db, "users", user.uid), newUserProfile);
+            await addDoc(collection(db, "users"), newUserProfile);
 
             setSuccessMessage('Pendaftaran akun berhasil! Silakan login.');
             
@@ -119,17 +118,7 @@ const signup: React.FC = () =>
         catch (error)
         {
             console.error("Sign up error : ", error);
-            
-            const errorCode = (error as FirebaseError).code;
-
-            if (errorCode === 'auth/email-already-in-use')
-            {
-                setErrors({ email: 'Email sudah terdaftar!' });
-            }
-            else
-            {
-                setErrors({ general: 'Pendaftaran gagal. Silakan coba lagi.' });
-            }
+            setErrors({ general: 'Pendaftaran Anda gagal. Silahkan coba lagi atau hubungi Admin jika masih tidak berhasil.' });
         }
         finally
         {
