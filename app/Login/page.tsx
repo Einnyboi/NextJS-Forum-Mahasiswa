@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useCallback } from 'react';
+import { db } from '@/lib/firebase'; 
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 interface UserData {
     id: string;
@@ -19,19 +21,6 @@ interface ErrorState {
     password?: string;
     general?: string;
 }
-
-const getStoredUsers = (): UserData[] => {
-    if (typeof window !== 'undefined') {
-        try {
-            const users = localStorage.getItem('foma_users');
-            return users ? JSON.parse(users) : [];
-        } catch (e) {
-            console.error("Error parsing users from localStorage:", e);
-            return [];
-        }
-    }
-    return [];
-};
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -56,7 +45,7 @@ const Login: React.FC = () => {
         }
 
         if (!password || password.length < 8) {
-            newErrors.password = 'Password minimal 8 karakter!';
+            newErrors.password = 'Password wajib diisi!';
             isValid = false;
         }
 
@@ -65,7 +54,7 @@ const Login: React.FC = () => {
     }, [email, password]);
 
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         clearErrors();
 
@@ -74,30 +63,31 @@ const Login: React.FC = () => {
         setLoading(true);
 
         try {
-            const users = getStoredUsers();
+            const usersRef = collection(db, "users");
+            const q = query(
+                usersRef,
+                where("email", "==", email),
+                where("password", "==", password)
+            )
 
-            // Find user
-            const user = users.find(u => u.email === email);
+            const querySnapshot = await getDocs(q);
 
-            if (!user) {
-                setErrors({ email: 'Email tidak ditemukan!' });
+            if (querySnapshot.empty) {
+                setErrors({ email: 'Email atau password salah!' });
                 setLoading(false);
                 return;
             }
 
-            if (user.password !== password) {
-                setErrors({ password: 'Password salah!' });
-                setLoading(false);
-                return;
-            }
+            const userDoc = querySnapshot.docs[0];
+            const userData = userDoc.data() as UserData;
 
-            setSuccessMessage(`Login berhasil! Selamat datang, ${user.fullName}.`);
+            setSuccessMessage(`Login berhasil! Selamat datang, ${userData.fullName}.`);
 
             setEmail('');
             setPassword('');
         } catch (error) {
             console.error("Login error:", error);
-            setErrors({ general: 'Terjadi kesalahan. Coba lagi.' });
+            setErrors({ general: 'Terjadi kesalahan. Coba lagi atau hubungi Admin jika masih gagal.' });
         } finally {
             setLoading(false);
         }
