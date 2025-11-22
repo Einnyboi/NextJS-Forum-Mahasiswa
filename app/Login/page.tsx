@@ -22,7 +22,11 @@ interface ErrorState {
     general?: string;
 }
 
-const Login: React.FC = () => {
+interface LoginProps {
+    onLoginSuccess: (userData: UserData) => void;
+}
+
+export default function LoginForm({onLoginSuccess}: LoginProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState<ErrorState>({});
@@ -85,6 +89,8 @@ const Login: React.FC = () => {
 
             setEmail('');
             setPassword('');
+
+            onLoginSuccess(userData);
         } catch (error) {
             console.error("Login error:", error);
             setErrors({ general: 'Terjadi kesalahan. Coba lagi atau hubungi Admin jika masih gagal.' });
@@ -268,5 +274,3 @@ const Login: React.FC = () => {
         </div>
     );
 };
-
-export default Login;
