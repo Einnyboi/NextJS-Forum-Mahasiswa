@@ -21,3 +21,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 export { db , auth};
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const db = getFirestore(app);
+
+export { db };

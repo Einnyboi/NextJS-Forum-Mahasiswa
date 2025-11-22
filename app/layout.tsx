@@ -30,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.variable} ${lato.variable}`}>
+        {/* Your Navbar and Sidebar would go here */}
         {children}
       </body>
     </html>

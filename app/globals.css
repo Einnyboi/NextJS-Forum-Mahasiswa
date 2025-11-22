@@ -23,10 +23,15 @@
     --caption-size: 0.694rem;
 }
 
+a {
+    color: var(#c7d6d5);
+    text-decoration: none;
+}
+
 body
 {
     font-family: var(--main-font);
-    background-color: var(--primary-color); 
+    background-color: var(--primary-color) !important; 
     color: var(--secondary-color);
     line-height: 1.6;
     padding-top: 72px !important; 
@@ -69,6 +74,12 @@ body
 .main-content
 {
     grid-area: main-content;
+}
+
+.btn-primary
+{
+    background-color : var(--error-red);
+    
 }
 
 /* components/Card.tsx*/
@@ -116,13 +127,6 @@ body
     background-color: var(--primary-color);
 }
 
-.main-dashboard-layout
-{
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-}
-
 .sidebar-card
 {
     position: fixed; 
@@ -136,6 +140,9 @@ body
     border-right: 1px solid var(--border-color);
     height: 100%; 
 }
+
+/* .components/features/profile */
+/* CommunityList.tsx */
 
 /* RESPONSIVE ADJUSTMENTS (Mobile View) */
 @media (max-width: 1024px)

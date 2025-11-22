@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+
 import styles from "./page.module.css"
-import Navbar from "../components/features/important/navbar";
-import Sidebar from "../components/features/important/sidebar";
+import Navbar from "@/components/layout/navbar";
+import Sidebar from "@/components/layout/sidebar";
 import SignupForm from "./signup/page";
 import LoginForm from "./Login/page";
 
@@ -28,12 +29,10 @@ export default function Home()
         {
           return <SignupForm />;
         }
-        
-        else if (currentView === 'login')
+          else if (currentView === 'login')
         {
         return <LoginForm />;
         }
-        
         return <DefaultHomeContent />;
     };
 
