@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useState , useCallback, use } from "react";
 import Image from "next/image";
 
 import styles from "./page.module.css"
@@ -21,6 +21,12 @@ const DefaultHomeContent = () =>
 export default function Home()
 {
     const [currentView, setCurrentView] = useState('home');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    const handleLoginSuccess = useCallback(() => {
+      setIsLoggedIn(true);
+      setCurrentView('home');
+    }, []);
 
     // Function to determine which content component to display
     const renderMainContent = () =>
@@ -29,16 +35,22 @@ export default function Home()
         {
           return <SignupForm />;
         }
-          else if (currentView === 'login')
+        else if (currentView === 'login')
         {
-        return <LoginForm />;
+          return <LoginForm onLoginSuccess={handleLoginSuccess} />;
         }
+
+        if (isLoggedIn)
+        {
+          return <div className="card-default"> <h3 className="card-title">Welcome Back User!</h3><p>This is a user only dashboard.</p></div>;
+        }
+
         return <DefaultHomeContent />;
     };
 
     return (
       <div>
-          <Navbar onNavChange={setCurrentView} isLoggedIn={false}></Navbar>
+          <Navbar onNavChange={setCurrentView} isLoggedIn={isLoggedIn}></Navbar>
           
           <div className="main-container">
               <div className="main-dashboard-layout">
