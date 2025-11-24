@@ -8,6 +8,7 @@ import Navbar from "@/components/layout/navbar";
 import Sidebar from "@/components/layout/sidebar";
 import SignupForm from "./signup/page";
 import LoginForm from "./Login/page";
+import CommunityView from "@/components/views/CommunityView";
 
 const DefaultHomeContent = () =>
 (
@@ -28,10 +29,10 @@ export default function Home()
         if (currentView === 'signup')
         {
           return <SignupForm />;
-        }
-          else if (currentView === 'login')
-        {
-        return <LoginForm />;
+        } else if (currentView === 'login') {
+          return <LoginForm />;
+        } else if (currentView === 'community') {
+          return <CommunityView />;
         }
         return <DefaultHomeContent />;
     };
