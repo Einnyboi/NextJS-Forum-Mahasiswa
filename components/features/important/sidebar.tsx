@@ -1,7 +1,7 @@
 'use client'
 import React from 'react';
 import { Home, Users, Calendar } from 'lucide-react';
-import { Card } from "@/components/layout/card";
+import { Card } from "./card";
 
 const Sidebar = () => {
     // Sidebar menu items

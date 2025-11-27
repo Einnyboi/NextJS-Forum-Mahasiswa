@@ -1,33 +1,52 @@
-// This is a common type you'll need everywhere
+// lib/types.ts
+// the schemas for our "tables"
+
 export type User = {
   id: string;
   name: string;
   avatarUrl: string;
   joinDate: string;
+  // Arrays of IDs for fast lookups (NoSQL style)
+  joinedCommunityIds?: string[];
+  rsvpEventIds?: string[];
 };
 
-// You need this for your community list
 export type Community = {
   id: string;
   name: string;
   imageUrl: string;
+  description?: string; // Optional: Good for the header
+  memberCount?: number; // Optional: Good for sorting popularity
 };
 
-// You need this for your new event list
 export type Event = {
   id: string;
   name: string;
-  date: string; // Using string for simplicity, can be Date object
-  communityName: string; // To show where the event is
+  date: string; // Keeping as string for frontend simplicity
+  communityName: string;
+  communityId?: string; // Added for linking back to the community
   href: string;
 };
 
-// Your friend would use this, but we'll define it for completeness
 export type Post = {
-  id: string;
+  id: string; // primary key
+
+  //foreign keys
+  communityId: string;
+  authorId: string;
+
+  // fetched from the other 'tables'
+  communityName: string;
+  communityImageUrl: string;
+  authorName: string;
+  authorAvatarUrl: string;
+
   title: string;
-  date: string;
-  category: string;
-  href: string;
-  authorId: string; // We'd use this to filter
+  content: string;
+  tag: string | null; // e.g. "Discussion", "Question", etc.
+
+  // Metadata
+  createdAt: string; // ISO String
+  likeCount: number;
+  commentCount: number;
 };

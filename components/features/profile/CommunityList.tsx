@@ -1,5 +1,8 @@
+'use client';
+
 import { Community } from '@/lib/types';
-import CommunityCard from '@/components/ui/CommunityCard';
+import Card from 'react-bootstrap/Card';
+import CommunityCard from '@/components/ui/CommunityCard'; // Import the new component
 
 type CommunityListProps = {
   communities: Community[];
@@ -7,22 +10,21 @@ type CommunityListProps = {
 
 export default function CommunityList({ communities }: CommunityListProps) {
   return (
-    <div className="rounded-[8px] bg-secondary p-4 shadow-sm">
-      <h2 className="mb-4 text-xl font-bold text-brand-black">
-        Joined Communities
-      </h2>
-      
-      {communities.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4">
-          {communities.map((community) => (
-            <CommunityCard key={community.id} community={community} />
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-500">
-          You haven&apos;t joined any communities yet.
-        </p>
-      )}
-    </div>
+    <Card className="card-default mb-4 border-0">
+      <Card.Body>
+        <h4 className="card-title mb-3">Joined Communities</h4>
+        
+        {communities.length > 0 ? (
+          <div className="d-flex flex-column gap-2">
+            {communities.map((community) => (
+              // Use the new Card component here
+              <CommunityCard key={community.id} community={community} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted">You havent joined any communities yet.</p>
+        )}
+      </Card.Body>
+    </Card>
   );
 }

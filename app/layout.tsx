@@ -1,16 +1,20 @@
-// app/layout.tsx
 import type { Metadata } from 'next';
+// 1. Import the fonts you need
 import { Poppins, Lato } from 'next/font/google';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './globals.css';
-// initialize font instances so we can read the .variable property
+
+// 2. Configure them
 const poppins = Poppins({
-  subsets: ['latin'], variable: '--font-poppins',
-  weight: '100'
+  subsets: ['latin'],
+  weight: ['400', '600', '700'], // Add the weights you'll use
+  variable: '--font-poppins', // This is for Tailwind
 });
+
 const lato = Lato({
-  subsets: ['latin'], variable: '--font-lato',
-  weight: '100'
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-lato', // This is for Tailwind
 });
 
 export const metadata: Metadata = {
@@ -18,7 +22,11 @@ export const metadata: Metadata = {
   description: 'A forum for university students.',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode; }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body className={`${poppins.variable} ${lato.variable}`}>

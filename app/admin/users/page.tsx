@@ -1,82 +1,63 @@
-'use client'; // Wajib untuk useState/useEffect
-
-import React, { useState, useEffect } from 'react';
-
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-};
+'use client'; 
+import React, { useEffect, useState } from 'react';
+import { Card, Table, Button, Badge } from 'react-bootstrap';
+import { api } from '@/lib/api'; 
 
 export default function ManageUsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<any[]>([]); // State untuk data user
+  const [loading, setLoading] = useState(true);
 
+  // Ambil data saat halaman dimuat
   useEffect(() => {
-    // Simulasi data (ini tidak berubah)
-    const mockUsers: User[] = [
-      { id: 101, name: 'Budi Santoso', email: 'budi.s@example.com', role: 'User' },
-      { id: 102, name: 'Citra Lestari', email: 'citra.l@example.com', role: 'User' },
-      { id: 103, name: 'Admin Foma', email: 'admin@foma.com', role: 'Admin' },
-      { id: 104, name: 'Doni Saputra', email: 'doni.s@example.com', role: 'User' },
-    ];
-    setUsers(mockUsers);
+    const fetchData = async () => {
+      try {
+        const data = await api.admin.getAllUsers(); // Panggil fungsi API baru
+        setUsers(data);
+      } catch (error) {
+        console.error("Gagal mengambil data user:", error);
+        // Fallback ke data kosong atau dummy jika API belum siap
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
-    // Ganti 'flex flex-col gap-6' dengan padding Bootstrap
-    <div className="py-2">
-      
-      {/* Header Halaman (Bootstrap) */}
-      <h2 className="h2 fw-bold mb-4">
-        Kelola Pengguna
-      </h2>
-
-      {/* Ganti 'rounded-lg bg-white-custom...' dengan 'card' Bootstrap */}
-      <div className="card shadow-sm p-4">
-        
-        {/* Sub-header (Bootstrap) */}
-        <h3 className="h5 fw-semibold mb-3">Daftar Pengguna Aktif</h3>
-
-        {/* Tabel (Bootstrap) */}
-        <div className="table-responsive">
-          {/* Tambahkan kelas 'table' dan 'table-hover' */}
-          <table className="table table-hover align-middle">
-            <thead>
-              {/* Header Tabel (Bootstrap) */}
-              <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Nama</th>
-                <th scope="col">Email</th>
-                <th scope="col">Peran</th>
-                <th scope="col">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.id}</td>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role}</td>
-                  <td>
-                    {/* Tombol Aksi (Gaya Bootstrap) */}
-                    {/* Ganti 'flex gap-2' dengan 'gap-2' Bootstrap */}
-                    <div className="d-flex gap-2">
-                      <button className="btn btn-primary btn-sm">
-                        Edit
-                      </button>
-                      <button className="btn btn-danger btn-sm">
-                        Hapus
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    <>
+      <h2 className="mb-4">Kelola Pengguna</h2>
+      <Card className="shadow-sm">
+        <Card.Body>
+          <Card.Title as="h5" className="mb-3">Daftar Pengguna Aktif</Card.Title>
+          {loading ? (
+             <p>Loading data...</p>
+          ) : (
+            <Table striped hover responsive>
+                {/* ... (Header Tabel) ... */}
+                <tbody>
+                {users.map((user) => (
+                    <tr key={user.id}>
+                    <td>{user.id}</td>
+                    <td>{user.fullName || user.username}</td>
+                    <td>{user.email}</td>
+                    <td>
+                        {/* Logika Badge Role */}
+                        <Badge bg={user.role === 'admin' ? 'primary' : 'secondary'}>
+                            {user.role}
+                        </Badge>
+                    </td>
+                    <td>
+                        <Button variant="primary" size="sm" className="me-2">Edit</Button>
+                        <Button variant="danger" size="sm">Hapus</Button>
+                    </td>
+                    </tr>
+                ))}
+                </tbody>
+            </Table>
+          )}
+        </Card.Body>
+      </Card>
+    </>
   );
 }

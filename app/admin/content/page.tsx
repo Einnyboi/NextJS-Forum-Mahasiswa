@@ -1,78 +1,62 @@
-'use client';
+'use client'; 
+import React from 'react';
+import { Card, Table, Button } from 'react-bootstrap';
 
-import React, { useState, useEffect } from 'react';
-
-// Tipe data untuk sebuah thread
-type Thread = {
-  id: string;
-  title: string;
-  author: string;
-  category: string;
-};
+// Data dummy sesuai screenshot Anda
+const dummyThreads = [
+  { id: 1, title: 'Cara setup Next.js dengan Tailwind', author: 'Budi Santoso', category: 'Teknologi' },
+  { id: 2, title: 'Review Gedung Perkuliahan Baru', author: 'Citra Lestari', category: 'Info Kampus' },
+  { id: 3, title: 'Lowongan Magang Software Engineer', author: 'Admin Foma', category: 'Karir' },
+];
 
 export default function ManageContentPage() {
-  const [threads, setThreads] = useState<Thread[]>([]);
-
-  useEffect(() => {
-    // Simulasi pengambilan data threads dari database
-    const mockThreads: Thread[] = [
-      { id: 't-001', title: 'Cara setup Next.js dengan Tailwind', author: 'Budi Santoso', category: 'Teknologi' },
-      { id: 't-002', title: 'Review Gedung Perkuliahan Baru', author: 'Citra Lestari', category: 'Info Kampus' },
-      { id: 't-003', title: 'Lowongan Magang Software Engineer', author: 'Admin Foma', category: 'Karir' },
-    ];
-    setThreads(mockThreads);
-  }, []);
-
   return (
-    <div className="flex flex-col gap-6">
-      
-      {/* Header Halaman */}
-      <h2 className="text-3xl font-bold text-secondary">
-        Kelola Konten
-      </h2>
+    <div>
+      {/* Judul Halaman */}
+      <h2 className="h2 fw-bold mb-4">Kelola Konten</h2>
 
-      {/* Kartu Putih Utama */}
-      <div className="rounded-lg bg-white-custom p-6 shadow-md">
-        
-        {/* Sub-header dari HTML Anda */}
-        <h3 className="mb-4 text-xl font-semibold text-secondary">Manajemen Konten Threads</h3>
-
-        {/* Tabel */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-full text-left text-secondary">
-            <thead>
-              {/* Header Tabel dari HTML Anda */}
-              <tr className="border-b-2 border-gray-200 bg-gray-50 text-gray-600">
-                <th className="px-4 py-3 font-semibold">Judul Thread</th>
-                <th className="px-4 py-3 font-semibold">Penulis</th>
-                <th className="px-4 py-3 font-semibold">Kategori</th>
-                <th className="px-4 py-3 font-semibold">Aksi</th>
+      {/* --- BUNGKUS DENGAN CARD (CONTAINER PUTIH) --- */}
+      <Card className="shadow-sm border-0">
+        <Card.Body className="p-4">
+          
+          <Card.Title as="h5" className="mb-4 text-muted">Manajemen Konten Threads</Card.Title>
+          
+          <Table hover responsive className="align-middle">
+            <thead className="table-light">
+              <tr>
+                <th className="py-3">Judul Thread</th>
+                <th className="py-3">Penulis</th>
+                <th className="py-3">Kategori</th>
+                <th className="py-3">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {/* Loop data mock ke dalam tabel */}
-              {threads.map((thread) => (
-                <tr key={thread.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-3">{thread.title}</td>
-                  <td className="px-4 py-3">{thread.author}</td>
-                  <td className="px-4 py-3">{thread.category}</td>
+              {dummyThreads.map((thread) => (
+                <tr key={thread.id}>
+                  <td className="fw-medium">{thread.title}</td>
+                  <td>{thread.author}</td>
                   <td>
-                    {/* Tombol Aksi */}
-                    <div className="flex gap-2">
-                      <button className="rounded bg-blue-500 px-4 py-1 text-sm font-medium text-white hover:bg-blue-600">
+                    <span className="badge bg-light text-dark border">
+                        {thread.category}
+                    </span>
+                  </td>
+                  <td>
+                    <Button variant="outline-dark" size="sm" className="me-2 rounded-pill px-3">
                         Edit
-                      </button>
-                      <button className="rounded bg-error px-4 py-1 text-sm font-medium text-white hover:brightness-90">
+                    </Button>
+                    <Button variant="outline-danger" size="sm" className="rounded-pill px-3">
                         Hapus
-                      </button>
-                    </div>
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      </div>
+          </Table>
+
+        </Card.Body>
+      </Card>
+      {/* --- AKHIR CARD --- */}
+      
     </div>
   );
 }
