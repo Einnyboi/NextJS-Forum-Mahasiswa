@@ -4,14 +4,14 @@ import { Card, Table, Button, Badge } from 'react-bootstrap';
 import { api } from '@/lib/api'; 
 
 export default function ManageUsersPage() {
-  const [users, setUsers] = useState<any[]>([]); // State untuk data user
+  const [users, setUsers] = useState<any[]>([]); 
   const [loading, setLoading] = useState(true);
 
   // Ambil data saat halaman dimuat
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await api.admin.getAllUsers(); // Panggil fungsi API baru
+        const data = await api.admin.getAllUsers(); 
         setUsers(data);
       } catch (error) {
         console.error("Gagal mengambil data user:", error);

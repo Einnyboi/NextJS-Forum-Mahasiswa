@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter untuk redirect
 
 interface UserData {
     id: string;
@@ -8,7 +7,7 @@ interface UserData {
     email: string;
     password: string;
     registrationDate: string;
-    role: string; // 'user' atau 'admin'
+    role: string;
 }
 
 const validateEmail = (email: string): boolean => {
@@ -35,7 +34,6 @@ const getStoredUsers = (): UserData[] => {
 };
 
 const Login: React.FC = () => {
-    const router = useRouter(); // Inisialisasi router
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState<ErrorState>({});
@@ -66,18 +64,6 @@ const Login: React.FC = () => {
         return isValid;
     }, [email, password]);
 
-    // Fungsi untuk menyimpan sesi ke LocalStorage agar Homepage bisa membacanya
-    const saveSessionAndRedirect = (user: UserData) => {
-        // Simpan data user yang sedang login ke 'foma_session'
-        localStorage.setItem('foma_session', JSON.stringify(user));
-        
-        setSuccessMessage(`Login berhasil! Selamat datang, ${user.fullName}.`);
-        
-        // Redirect ke homepage setelah delay singkat
-        setTimeout(() => {
-            router.push('/'); // Asumsi homepage ada di route '/'
-        }, 1500);
-    };
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
@@ -87,57 +73,36 @@ const Login: React.FC = () => {
 
         setLoading(true);
 
-        // Simulasi delay network
-        setTimeout(() => {
-            try {
-                // 1. Cek Hardcoded Admin (Untuk memudahkan testing Anda)
-                if (email === 'admin@foma.com' && password === 'admin123') {
-                    const adminUser: UserData = {
-                        id: 'admin-001',
-                        fullName: 'Super Admin',
-                        email: 'admin@foma.com',
-                        password: 'hashed_secret',
-                        registrationDate: new Date().toISOString(),
-                        role: 'admin' // ROLE PENTING
-                    };
-                    saveSessionAndRedirect(adminUser);
-                    setLoading(false);
-                    return;
-                }
+        try {
+            const users = getStoredUsers();
 
-                // 2. Cek User Biasa dari LocalStorage
-                const users = getStoredUsers();
-                const user = users.find(u => u.email === email);
+            // Find user
+            const user = users.find(u => u.email === email);
 
-                if (!user) {
-                    setErrors({ email: 'Email tidak ditemukan!' });
-                    setLoading(false);
-                    return;
-                }
-
-                if (user.password !== password) {
-                    setErrors({ password: 'Password salah!' });
-                    setLoading(false);
-                    return;
-                }
-
-                // Login Berhasil User Biasa
-                saveSessionAndRedirect(user);
-
-            } catch (error) {
-                console.error("Login error:", error);
-                setErrors({ general: 'Terjadi kesalahan. Coba lagi.' });
+            if (!user) {
+                setErrors({ email: 'Email tidak ditemukan!' });
                 setLoading(false);
+                return;
             }
-        }, 1000);
+
+            if (user.password !== password) {
+                setErrors({ password: 'Password salah!' });
+                setLoading(false);
+                return;
+            }
+
+            setSuccessMessage(`Login berhasil! Selamat datang, ${user.fullName}.`);
+
+            setEmail('');
+            setPassword('');
+        } catch (error) {
+            console.error("Login error:", error);
+            setErrors({ general: 'Terjadi kesalahan. Coba lagi.' });
+        } finally {
+            setLoading(false);
+        }
     };
 
-    // Handler khusus tombol Admin (Opsional: Bisa auto-fill atau mode khusus)
-    const handleAdminFill = () => {
-        setEmail('admin@foma.com');
-        setPassword('admin123');
-        clearErrors();
-    };
 
     return (
         <div className="flex justify-center items-start min-h-screen pt-20 pb-10 bg-[#c7d6d5]">
@@ -170,7 +135,7 @@ const Login: React.FC = () => {
                 }
 
                 .form-group label {
-                    display: block;
+                    display: block
                     font-weight: 600;
                     margin-bottom: 0.5rem;
                     color: var(--secondary-color);
@@ -213,28 +178,6 @@ const Login: React.FC = () => {
                     background: #a00110;
                     transform: translateY(-1px);
                     box-shadow: 0 6px 20px rgba(194, 1, 20, 0.3);
-                }
-
-                /* Styling untuk tombol Admin Outline */
-                .adminBtn {
-                    display: block;
-                    width: 100%;
-                    padding: 0.8rem 1.5rem;
-                    border: 2px solid var(--secondary-color);
-                    border-radius: 8px;
-                    font-family: var(--main-font);
-                    font-weight: 600;
-                    text-align: center;
-                    cursor: pointer;
-                    background-color: transparent;
-                    color: var(--secondary-color);
-                    margin-top: 1rem;
-                    transition: all 0.3s ease;
-                }
-
-                .adminBtn:hover {
-                    background-color: var(--secondary-color);
-                    color: var(--white-color);
                 }
 
                 .loginBtn:disabled {
@@ -325,16 +268,6 @@ const Login: React.FC = () => {
                         disabled={loading}
                     >
                         {loading ? 'Logging In...' : 'Login'}
-                    </button>
-
-                    {/* Tombol khusus Admin */}
-                    <button
-                        type="button"
-                        className="btn adminBtn"
-                        onClick={handleAdminFill}
-                        title="Auto-fill credentials admin (Demo)"
-                    >
-                        Login as Admin (Demo)
                     </button>
                 </form>
 

@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth"; // 1. Import getAuth
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,11 +11,8 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Mencegah inisialisasi ganda di Next.js (Hot Reload)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-
 const db = getFirestore(app);
-const auth = getAuth(app); // 2. Inisialisasi Auth
+const auth = getAuth(app);
 
-// 3. Export auth agar bisa dipakai di Login/page.tsx
 export { db, auth };

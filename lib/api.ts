@@ -12,40 +12,92 @@ async function fetcher(url: string, options?: RequestInit) {
 
 export const api = {
 
-  // ... (Kode posts yang sudah ada biarkan saja) ...
+  admin: {
+    getAllUsers: async () => {
+      // Pastikan path fetcher ini sesuai dengan backend Anda nanti
+      // Untuk sementara bisa pakai fetcher atau return data dummy
+      return []; 
+    },
+    deleteUser: async (userId: string) => {
+      return {};
+    }
+  },
+
+  // Threads page functions disini (Onel)
   posts: {
-     // ...
-     getAll : async () => {
+    // fungsi ambil semua post
+    // GET /api/posts
+    getAll : async () => {
       return fetcher('/api/posts');
     },
-    // ...
-  },
-  
-  // ... (Kode communities biarkan saja) ...
-  communities: {
-    // ...
-  },
 
-  // ... (Kode comments biarkan saja) ...
-  comments: {
-    // ...
-  },
-
-  // --- TAMBAHKAN BAGIAN INI UNTUK ADMIN ---
-  admin: {
-    // Mengambil semua user untuk tabel "Kelola Pengguna"
-    // GET /api/users (Anda perlu membuat route ini nanti di backend)
-    getAllUsers: async () => {
-      return fetcher('/api/users'); 
+    // fungsi untuk ambil HANYA post dari commuity tertentu
+    // GET /api/posts?communityId=comm-1
+    getByCommunity: async (communityId: string) => {
+      return fetcher(`/api/posts?communityId=${communityId}`);
     },
 
-    // Menghapus user
-    // DELETE /api/users?id=123
-    deleteUser: async (userId: string) => {
-      return fetcher(`/api/users?id=${userId}`, {
-        method: 'DELETE',
+    // fungsi bikin post baru
+    // POST /api/posts/create
+    create: async (data: { title: string; content: string; communityId: string; authorId: string }) => {
+      return fetcher('/api/posts/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    },
+
+    // fungsi untuk like post
+    // POST /api/posts/like
+    like: async (postId: string) => {
+      return fetcher('/api/posts/like', {
+        method: 'POST',
+        headers: {'Content-Type' : 'apllication/json'},
+        body: JSON.stringify({postId}),
+      });
+    }
+    
+  },
+  
+  // Communities page functions disini (Cath)
+  communities: {
+
+    // fungsi untuk join community
+    // POST /api/communities/join
+    join: async (userId: string, communityId: string) => {
+      return fetcher('/api/communities/join', {
+        method: 'POST',
+        headers: {'Content-Type' : 'application/json'},
+        body: JSON.stringify({userId, communityId}),
+      });
+    },
+
+    //fungsi untuk leave Community
+    // POST /api/communities/leave
+    leave: async (userId: string, communityId: string) => {
+      return fetcher('/api/communities/leave', {
+        method: 'POST',
+        headers: {'Content-Type' : 'application/json'},
+        body: JSON.stringify({userId, communityId}),
+      });
+    },
+  },
+
+  comments: {
+    //fungsi untuk ambil comments dari post tertentu
+    // GET /api/comments?postId=post-1
+    getByPost: async (postId: string) =>{
+      return fetcher(`/api/comments?postId=${postId}`);
+    },
+
+    //fungsi untuk create comment
+    // POST /api/comments/create
+    create: async (data:{postId:string; authorId:string; content:string}) =>{
+      return fetcher('/api/comments/create', {
+        method: 'POST',
+        headers: {'Content-Type' : 'application/json'},
+        body: JSON.stringify(data),
       });
     }
   }
-  // ----------------------------------------
 };
