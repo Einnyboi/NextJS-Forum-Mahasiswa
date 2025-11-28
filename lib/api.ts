@@ -62,6 +62,22 @@ export const api = {
   // Communities page functions disini (Cath)
   communities: {
 
+    // fungsi create community
+    // POST /api/communities
+    create: async (data: {name: string; description: string; imageUrl: string}) => {
+      return fetcher ('/api/communities',{
+        method: 'POST',
+        headers: {'Content-Type' : 'application/json'},
+        body: JSON.stringify(data),
+      });
+    },
+
+    // fungsi getAll
+    // GET /api/communities
+    getAll: async () =>{
+      return fetcher('/api/communities');
+    },
+
     // fungsi untuk join community
     // POST /api/communities/join
     join: async (userId: string, communityId: string) => {
@@ -71,7 +87,6 @@ export const api = {
         body: JSON.stringify({userId, communityId}),
       });
     },
-
     //fungsi untuk leave Community
     // POST /api/communities/leave
     leave: async (userId: string, communityId: string) => {

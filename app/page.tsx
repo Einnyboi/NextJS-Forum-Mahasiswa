@@ -9,6 +9,7 @@ import Sidebar from "@/components/layout/sidebar";
 import SignupForm from "./signup/page";
 import LoginForm from "./Login/page";
 
+
 const DefaultHomeContent = () =>
 (
   <div className="card-default">
