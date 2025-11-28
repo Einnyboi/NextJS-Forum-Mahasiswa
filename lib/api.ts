@@ -12,6 +12,17 @@ async function fetcher(url: string, options?: RequestInit) {
 
 export const api = {
 
+  admin: {
+    getAllUsers: async () => {
+      // Pastikan path fetcher ini sesuai dengan backend Anda nanti
+      // Untuk sementara bisa pakai fetcher atau return data dummy
+      return []; 
+    },
+    deleteUser: async (userId: string) => {
+      return {};
+    }
+  },
+
   // Threads page functions disini (Onel)
   posts: {
     // fungsi ambil semua post
