@@ -1,4 +1,8 @@
-// lib/db.ts - THE REAL DATABASE LAYER
+// lib/db.ts
+// this is the database layer, routes (app/api/...) rely on this to talk to firebase
+// the difference with api.ts is that this one is backend only
+// this file handles things like complex queries, joins, transactions, etc
+
 import { db } from '@/lib/firebase';
 import { 
   collection, 
@@ -69,18 +73,12 @@ export const dbService = {
       return snapshot.exists() ? (snapToData(snapshot) as Community) : null;
     },
 
-    // This handles the complex logic of joining a community
     join: async (userId: string, communityId: string) => {
       try {
-        // 1. Add community ID to the User's 'joinedCommunityIds' array
         const userRef = doc(db, 'users', userId);
         await updateDoc(userRef, {
           joinedCommunityIds: arrayUnion(communityId)
         });
-
-        // 2. (Optional) Increment member count on Community
-        // Note: Real apps usually use Cloud Functions for counters to be safe
-        
         return { success: true };
       } catch (error) {
         console.error(error);
@@ -105,7 +103,6 @@ export const dbService = {
       
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        // Check if the array exists AND includes the ID
         return userData.joinedCommunityIds?.includes(communityId) || false;
       }
       return false;
@@ -136,6 +133,11 @@ export const dbService = {
       const docRef = doc(db, 'users', id);
       const snapshot = await getDoc(docRef);
       return snapshot.exists() ? (snapToData(snapshot) as User) : null;
+    },
+    update: async (id: string, data: Partial<User>) => {
+      const userRef = doc(db, 'users', id);
+      await updateDoc(userRef, data);
+      return { id, ...data };
     }
   }
 };

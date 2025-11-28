@@ -1,3 +1,6 @@
+// firebase.ts
+// this is the file that connects us to the database... without this db.ts crashes
+
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
