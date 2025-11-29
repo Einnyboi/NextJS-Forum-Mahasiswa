@@ -1,148 +1,113 @@
 'use client';
 import React, { useState, useCallback } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { FirebaseError } from 'firebase/app';
 
-interface UserProfileData
-{
+interface UserData {
+    id: string;
     fullName: string;
+    email: string;
+    password: string;
     registrationDate: string;
     role: string;
 }
 
-const validateName = (name: string): boolean =>
-{
-    return /^[a-zA-Z\s]{3,32}$/.test(name);
-};
-
-const validateEmail = (email: string): boolean =>
-{
+const validateEmail = (email: string): boolean => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
-interface ErrorState
-{
-    fullName?: string;
+interface ErrorState {
     email?: string;
     password?: string;
-    confirmPassword?: string;
     general?: string;
 }
 
-const signup: React.FC = () =>
-{
-    const [fullName, setFullName] = useState('');
+const getStoredUsers = (): UserData[] => {
+    if (typeof window !== 'undefined') {
+        try {
+            const users = localStorage.getItem('foma_users');
+            return users ? JSON.parse(users) : [];
+        } catch (e) {
+            console.error("Error parsing users from localStorage:", e);
+            return [];
+        }
+    }
+    return [];
+};
+
+const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    
     const [errors, setErrors] = useState<ErrorState>({});
     const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const clearErrors = useCallback(() =>
-    {
+    const clearErrors = useCallback(() => {
         setErrors({});
         setSuccessMessage('');
         setLoading(false);
     }, []);
 
-    const validateForm = useCallback((): boolean =>
-    {
+    const validateForm = useCallback((): boolean => {
         const newErrors: ErrorState = {};
         let isValid = true;
 
-        if (!fullName || !validateName(fullName))
-        {
-            newErrors.fullName = 'Format nama tidak valid!';
-            isValid = false;
-        }
-
-        if (!email || !validateEmail(email))
-        {
+        if (!email || !validateEmail(email)) {
             newErrors.email = 'Format email tidak valid!';
             isValid = false;
         }
 
-        if (!password || password.length < 8)
-        {
+        if (!password || password.length < 8) {
             newErrors.password = 'Password minimal 8 karakter!';
-            isValid = false;
-        }
-
-        if (password !== confirmPassword)
-        {
-            newErrors.confirmPassword = 'Konfirmasi Password tidak sesuai!';
             isValid = false;
         }
 
         setErrors(newErrors);
         return isValid;
-    }, [fullName, email, password, confirmPassword]);
+    }, [email, password]);
 
 
-    const handleSignUp = async (e: React.FormEvent) =>
-    {
+    const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         clearErrors();
 
-        if (!validateForm())
-        {
-            return;
-        }
+        if (!validateForm()) return;
 
         setLoading(true);
 
-        try
-        {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
+        try {
+            const users = getStoredUsers();
 
-            const newUserProfile: UserProfileData =
-            {
-                fullName: fullName,
-                registrationDate: new Date().toISOString(),
-                role: "user", 
-            };
+            // Find user
+            const user = users.find(u => u.email === email);
 
-            await setDoc(doc(db, "users", user.uid), newUserProfile);
+            if (!user) {
+                setErrors({ email: 'Email tidak ditemukan!' });
+                setLoading(false);
+                return;
+            }
 
-            setSuccessMessage('Pendaftaran akun berhasil! Silakan login.');
-            
-            setFullName('');
+            if (user.password !== password) {
+                setErrors({ password: 'Password salah!' });
+                setLoading(false);
+                return;
+            }
+
+            setSuccessMessage(`Login berhasil! Selamat datang, ${user.fullName}.`);
+
             setEmail('');
             setPassword('');
-            setConfirmPassword('');
-        }
-        catch (error)
-        {
-            console.error("Sign up error : ", error);
-            
-            const errorCode = (error as FirebaseError).code;
-
-            if (errorCode === 'auth/email-already-in-use')
-            {
-                setErrors({ email: 'Email sudah terdaftar!' });
-            }
-            else
-            {
-                setErrors({ general: 'Pendaftaran gagal. Silakan coba lagi.' });
-            }
-        }
-        finally
-        {
+        } catch (error) {
+            console.error("Login error:", error);
+            setErrors({ general: 'Terjadi kesalahan. Coba lagi.' });
+        } finally {
             setLoading(false);
         }
     };
 
+
     return (
         <div className="flex justify-center items-start min-h-screen pt-20 pb-10 bg-[#c7d6d5]">
-            <style jsx global>
-            {`
-                .auth-container
-                {
+            <style jsx global>{`
+                .auth-container {
                     background: var(--white-color);
                     padding: 3rem 2.5rem;
                     border-radius: 12px;
@@ -152,36 +117,31 @@ const signup: React.FC = () =>
                     font-family: var(--main-font);
                 }
 
-                .auth-header h2
-                {
+                .auth-header h2 {
                     font-size: 2rem;
                     font-weight: 700;
                     color: var(--secondary-color);
                     margin-bottom: 0.5rem;
                 }
 
-                .auth-header p
-                {
+                .auth-header p {
                     color: rgba(12, 18, 12, 0.6);
                     margin-bottom: 2rem;
                     font-family: var(--secondary-font);
                 }
 
-                .form-group
-                {
+                .form-group {
                     margin-bottom: 1.5rem;
                 }
 
-                .form-group label
-                {
-                    display: block;
+                .form-group label {
+                    display: block
                     font-weight: 600;
                     margin-bottom: 0.5rem;
                     color: var(--secondary-color);
                 }
 
-                .form-group input
-                {
+                .form-group input {
                     width: 100%;
                     padding: 0.75rem 1rem;
                     border: 1px solid rgba(12, 18, 12, 0.2);
@@ -191,15 +151,13 @@ const signup: React.FC = () =>
                     transition: border-color 0.2s, box-shadow 0.2s;
                 }
 
-                .form-group input:focus
-                {
+                .form-group input:focus {
                     outline: none;
                     border-color: #0c120c;
                     box-shadow: 0 0 0 3px rgba(12, 18, 12, 0.1);
                 }
                 
-                .signupBtn
-                {
+                .loginBtn {
                     display: block;
                     width: 100%;
                     padding: 0.9rem 1.5rem;
@@ -216,15 +174,13 @@ const signup: React.FC = () =>
                     margin-top: 1rem;
                 }
 
-                .signupBtn:hover:not(:disabled)
-                {
+                .loginBtn:hover:not(:disabled) {
                     background: #a00110;
                     transform: translateY(-1px);
                     box-shadow: 0 6px 20px rgba(194, 1, 20, 0.3);
                 }
 
-                .signupBtn:disabled
-                {
+                .loginBtn:disabled {
                     background: rgba(12, 18, 12, 0.1);
                     cursor: not-allowed;
                     transform: none;
@@ -232,8 +188,7 @@ const signup: React.FC = () =>
                     color: rgba(12, 18, 12, 0.5);
                 }
 
-                .error
-                {
+                .error {
                     color: var(--error-red);
                     font-size: 0.85rem;
                     margin-top: 0.5rem;
@@ -242,8 +197,7 @@ const signup: React.FC = () =>
                     font-weight: 400;
                 }
 
-                .success
-                {
+                .success {
                     color: var(--secondary-color);
                     background-color: #e0f2f1;
                     padding: 1rem;
@@ -252,58 +206,41 @@ const signup: React.FC = () =>
                     text-align: center;
                     font-weight: 500;
                 }
-                
-                .auth-footer
-                {
+
+                .auth-footer {
                     text-align: center;
                     margin-top: 2rem;
                     color: rgba(12, 18, 12, 0.6);
                     font-family: var(--secondary-font);
                 }
-                
-                .auth-footer a
-                {
+
+                .auth-footer a {
                     color: var(--secondary-color);
                     font-weight: 600;
                     text-decoration: none;
                     transition: color 0.2s;
                 }
-                
-                .auth-footer a:hover
-                {
+
+                .auth-footer a:hover {
                     color: #a00110; 
                 }
-            `}
-            </style>
-            
+            `}</style>
+
             <div className="auth-container">
                 <div className="auth-header">
-                    <h2>Join Foma Community</h2>
-                    <p>Create your account to start discussions</p>
+                    <h2>Welcome Back</h2>
+                    <p>Log in to continue</p>
                 </div>
 
                 {successMessage && <div className="success">{successMessage}</div>}
                 {errors.general && <div className="error text-center mb-4">{errors.general}</div>}
 
-                <form onSubmit={handleSignUp}>
+                <form onSubmit={handleLogin}>
                     <div className="form-group">
-                        <label htmlFor="fullName">Full Name</label>
-                        <input
-                            type="text"
-                            id="fullName"
-                            name="fullName"
-                            required
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                        />
-                        {errors.fullName && <span className="error">{errors.fullName}</span>}
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="signupEmail">Email Address</label>
+                        <label htmlFor="loginEmail">Email Address</label>
                         <input
                             type="email"
-                            id="signupEmail"
+                            id="loginEmail"
                             name="email"
                             required
                             value={email}
@@ -313,10 +250,10 @@ const signup: React.FC = () =>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="signupPass">Password</label>
+                        <label htmlFor="loginPass">Password</label>
                         <input
                             type="password"
-                            id="signupPass"
+                            id="loginPass"
                             name="password"
                             required
                             value={password}
@@ -325,34 +262,21 @@ const signup: React.FC = () =>
                         {errors.password && <span className="error">{errors.password}</span>}
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="confirmPass">Confirm Password</label>
-                        <input
-                            type="password"
-                            id="confirmPass"
-                            name="confirmPassword"
-                            required
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                        />
-                        {errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
-                    </div>
-
                     <button
                         type="submit"
-                        className="btn signupBtn"
+                        className="btn loginBtn"
                         disabled={loading}
                     >
-                        {loading ? 'Creating Account...' : 'Create Account'}
+                        {loading ? 'Logging In...' : 'Login'}
                     </button>
                 </form>
 
                 <div className="auth-footer">
-                    Already have an account? <a href="#">Log in here</a>
+                    New to Foma? <a href="#">Create an account</a>
                 </div>
             </div>
         </div>
     );
 };
 
-export default signup;
+export default Login;

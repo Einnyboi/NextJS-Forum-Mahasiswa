@@ -6,18 +6,15 @@ import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import { Search, Github as User, LogOut, History, Settings } from 'lucide-react'; // Tambah icon Settings
+import { Search, Github as User, LogOut, History } from 'lucide-react';
 
-// 1. UPDATE INTERFACE
 interface AppNavbarProps
 {
     onNavChange: (view: string) => void;
     isLoggedIn: boolean;
-    userRole?: string; // Tambahkan ini (opsional karena user mungkin belum login)
 }
 
-// 2. UPDATE ARGUMEN FUNGSI
-function AppNavbar({ onNavChange , isLoggedIn, userRole }: AppNavbarProps) 
+function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps) 
 {
     const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
@@ -36,26 +33,7 @@ function AppNavbar({ onNavChange , isLoggedIn, userRole }: AppNavbarProps)
         if (isLoggedIn)
         {
             return (
-                <Nav className="my-2 my-lg-0 profile-dropdown-toggle d-flex align-items-center gap-3">
-                    
-                    {/* 3. LOGIKA TOMBOL ADMIN */}
-                    {userRole === 'admin' && (
-                        <Button 
-                            href="/admin" 
-                            variant="danger" // Warna Merah Bootstrap
-                            className="d-flex align-items-center gap-2"
-                            style={{ 
-                                borderRadius: '50px', 
-                                fontWeight: '600',
-                                padding: '0.5rem 1.2rem',
-                                boxShadow: '0 4px 15px rgba(194, 1, 20, 0.2)'
-                            }}
-                        >
-                            <Settings size={18} />
-                            Admin Settings
-                        </Button>
-                    )}
-
+                <Nav className="my-2 my-lg-0 profile-dropdown-toggle">
                     <NavDropdown 
                         title="User" 
                         id="navbarScrollingDropdown" 

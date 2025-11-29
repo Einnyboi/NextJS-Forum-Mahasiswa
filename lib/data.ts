@@ -2,9 +2,10 @@ import { User, Community, Event } from './types';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, query, where, getDocs, documentId } from 'firebase/firestore';
 
-const CURRENT_LOGGED_IN_USER_ID = 'user-1';
+const CURRENT_LOGGED_IN_USER_ID = 'user-1'; // hapus pas udah ada login signup signout
 
 export async function getProfileData() {
+  //ini fetch dari database
   let user: User;
   let communities: Community[] = [];
   let events: Event[] = [];
