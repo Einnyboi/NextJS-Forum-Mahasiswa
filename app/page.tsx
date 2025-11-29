@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 
 import styles from "./page.module.css"
-import Navbar from "@/components/layout/navbar";
-import Sidebar from "@/components/layout/sidebar";
+import Navbar from "@/components/features/important/navbar";
+import Sidebar from "@/components/features/important/sidebar";
 import SignupForm from "./signup/page";
 import LoginForm from "./Login/page";
 

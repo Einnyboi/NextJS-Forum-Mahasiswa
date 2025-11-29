@@ -19,7 +19,6 @@ import {
 import { Post, Community, User } from './types';
 import { get } from 'http';
 
-// Helper to convert Firestore snapshots to our Types
 const snapToData = (doc: any) => ({ id: doc.id, ...doc.data() });
 
 export const dbService = {
@@ -41,6 +40,12 @@ export const dbService = {
 
     getByCommunity: async (communityId: string): Promise<Post[]> => {
       const q = query(collection(db, 'posts'), where('communityId', '==', communityId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => snapToData(doc) as Post);
+    },
+
+    getByAuthor: async (authorId: string): Promise<Post[]> => {
+      const q = query(collection(db, 'posts'), where('authorId', '==', authorId));
       const snapshot = await getDocs(q);
       return snapshot.docs.map(doc => snapToData(doc) as Post);
     },
@@ -109,7 +114,26 @@ export const dbService = {
     },
   },
 
+  // ==============================
+  // EVENTS
+  // ==============================
+  events: {
+    getUpcoming: async (): Promise<any[]> => {
+      const now = new Date().toISOString();
+      const q = query(collection(db, 'events'), where('date', '>=', now));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => snapToData(doc));
+    },
+    getById: async (id: string): Promise<any | null> => {
+        const docRef = doc(db, 'events', id);
+        const snapshot = await getDoc(docRef);
+        return snapshot.exists() ? snapToData(snapshot) : null;
+    }
+  },
 
+  // ==============================
+  // COMMENTS
+  // ==============================
   comments: {
     create: async (commentData: any) => {
       const docRef = await addDoc(collection(db, 'comments'), {
@@ -133,6 +157,20 @@ export const dbService = {
       const docRef = doc(db, 'users', id);
       const snapshot = await getDoc(docRef);
       return snapshot.exists() ? (snapToData(snapshot) as User) : null;
+    },
+    getByEmail: async (email: string): Promise<User | null> => {
+      const q = query(collection(db, 'users'), where('email', '==', email));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        return null;
+      }
+      return snapToData(snapshot.docs[0]) as User;
+    },
+    getProfile: async (): Promise<User | null> => {
+      // For simplicity, we return a hardcoded user ID
+      const userId = 'user-123'; // Replace with actual auth logic
+      return dbService.users.getById(userId);
     },
     update: async (id: string, data: Partial<User>) => {
       const userRef = doc(db, 'users', id);

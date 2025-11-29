@@ -13,7 +13,8 @@ export type User = {
 
 export type Community = {
   id: string;
-  name: string;
+  name: string; // Display name (can have duplicates)
+  handle: string; // Unique identifier like @community-handle
   imageUrl: string;
   description?: string; // Optional: Good for the header
   memberCount?: number; // Optional: Good for sorting popularity
