@@ -1,6 +1,6 @@
+//lib/api.ts
+// UI components and features call these functions to interact with the backend
 import { Community } from './types';
-// lib/api.ts
-
 async function fetcher(url: string, options?: RequestInit) {
   const res = await fetch(url, options);
   if (!res.ok) {

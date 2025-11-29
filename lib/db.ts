@@ -1,4 +1,8 @@
-// lib/db.ts - THE REAL DATABASE LAYER
+// lib/db.ts
+// this is the database layer, routes (app/api/...) rely on this to talk to firebase
+// the difference with api.ts is that this one is backend only
+// this file handles things like complex queries, joins, transactions, etc
+
 import { db } from '@/lib/firebase';
 import { 
   collection, 
@@ -15,7 +19,6 @@ import {
 import { Post, Community, User } from './types';
 import { get } from 'http';
 
-// Helper to convert Firestore snapshots to our Types
 const snapToData = (doc: any) => ({ id: doc.id, ...doc.data() });
 
 export const dbService = {
@@ -37,6 +40,12 @@ export const dbService = {
 
     getByCommunity: async (communityId: string): Promise<Post[]> => {
       const q = query(collection(db, 'posts'), where('communityId', '==', communityId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => snapToData(doc) as Post);
+    },
+
+    getByAuthor: async (authorId: string): Promise<Post[]> => {
+      const q = query(collection(db, 'posts'), where('authorId', '==', authorId));
       const snapshot = await getDocs(q);
       return snapshot.docs.map(doc => snapToData(doc) as Post);
     },
@@ -69,18 +78,12 @@ export const dbService = {
       return snapshot.exists() ? (snapToData(snapshot) as Community) : null;
     },
 
-    // This handles the complex logic of joining a community
     join: async (userId: string, communityId: string) => {
       try {
-        // 1. Add community ID to the User's 'joinedCommunityIds' array
         const userRef = doc(db, 'users', userId);
         await updateDoc(userRef, {
           joinedCommunityIds: arrayUnion(communityId)
         });
-
-        // 2. (Optional) Increment member count on Community
-        // Note: Real apps usually use Cloud Functions for counters to be safe
-        
         return { success: true };
       } catch (error) {
         console.error(error);
@@ -105,14 +108,32 @@ export const dbService = {
       
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        // Check if the array exists AND includes the ID
         return userData.joinedCommunityIds?.includes(communityId) || false;
       }
       return false;
     },
   },
 
+  // ==============================
+  // EVENTS
+  // ==============================
+  events: {
+    getUpcoming: async (): Promise<any[]> => {
+      const now = new Date().toISOString();
+      const q = query(collection(db, 'events'), where('date', '>=', now));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => snapToData(doc));
+    },
+    getById: async (id: string): Promise<any | null> => {
+        const docRef = doc(db, 'events', id);
+        const snapshot = await getDoc(docRef);
+        return snapshot.exists() ? snapToData(snapshot) : null;
+    }
+  },
 
+  // ==============================
+  // COMMENTS
+  // ==============================
   comments: {
     create: async (commentData: any) => {
       const docRef = await addDoc(collection(db, 'comments'), {
@@ -136,6 +157,25 @@ export const dbService = {
       const docRef = doc(db, 'users', id);
       const snapshot = await getDoc(docRef);
       return snapshot.exists() ? (snapToData(snapshot) as User) : null;
+    },
+    getByEmail: async (email: string): Promise<User | null> => {
+      const q = query(collection(db, 'users'), where('email', '==', email));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        return null;
+      }
+      return snapToData(snapshot.docs[0]) as User;
+    },
+    getProfile: async (): Promise<User | null> => {
+      // For simplicity, we return a hardcoded user ID
+      const userId = 'user-123'; // Replace with actual auth logic
+      return dbService.users.getById(userId);
+    },
+    update: async (id: string, data: Partial<User>) => {
+      const userRef = doc(db, 'users', id);
+      await updateDoc(userRef, data);
+      return { id, ...data };
     }
   }
 };

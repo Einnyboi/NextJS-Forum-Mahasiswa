@@ -17,18 +17,32 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, description, imageUrl } = body;
+    const { name, handle, description, imageUrl } = body;
 
-    if (!name || !imageUrl) {
-      return NextResponse.json({ error: "Name and Image URL are required" }, { status: 400 });
+    if (!name || !handle || !imageUrl) {
+      return NextResponse.json({ error: "Name, handle, and Image URL are required" }, { status: 400 });
+    }
+
+    // Check if handle already exists
+    const existingCommunities = await dbService.communities.getAll();
+    const handleExists = existingCommunities.some(
+      (c) => c.handle && c.handle.toLowerCase() === handle.toLowerCase()
+    );
+
+    if (handleExists) {
+      return NextResponse.json(
+        { error: "This handle is already taken. Please choose another one." },
+        { status: 409 }
+      );
     }
 
     // Add to Firestore
     const docRef = await addDoc(collection(db, 'communities'), {
       name,
-      description: description || "", // Handle optional description
+      handle: handle.toLowerCase(),
+      description: description || "",
       imageUrl,
-      memberCount: 0, // Start with 0 members
+      memberCount: 0,
       createdAt: new Date().toISOString()
     });
 

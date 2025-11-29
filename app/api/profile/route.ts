@@ -1,53 +1,47 @@
-// app/api/profile/route.ts
-import { db } from "@/lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+import { dbService } from '@/lib/db';
 
-// GET Request: Fetches user data
-// Usage: /api/profile?id=user-1
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("id");
-
-  if (!userId) {
-    return NextResponse.json({ error: "User ID is required" }, { status: 400 });
-  }
-
   try {
-    const docRef = doc(db, "users", userId);
-    const docSnap = await getDoc(docRef);
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ error: 'missing id' }, { status: 400 });
 
-    if (docSnap.exists()) {
-      return NextResponse.json(docSnap.data());
-    } else {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 });
+    const user = await dbService.users.getById(id);
+    if (!user) return NextResponse.json({ error: 'user not found' }, { status: 404 });
+
+    // communities: load all and filter by user's joinedCommunityIds
+    const allCommunities = await dbService.communities.getAll();
+    const communities = (user.joinedCommunityIds && user.joinedCommunityIds.length > 0)
+      ? allCommunities.filter(c => user.joinedCommunityIds?.includes(c.id))
+      : [];
+
+    // events: fetch upcoming events and filter by user's rsvpEventIds
+    const upcoming = await dbService.events.getUpcoming();
+    const events = (user.rsvpEventIds && user.rsvpEventIds.length > 0)
+      ? upcoming.filter(e => user.rsvpEventIds?.includes(e.id))
+      : [];
+
+    // posts by author
+    const posts = await dbService.posts.getByAuthor(user.id);
+
+    return NextResponse.json({ user, communities, events, posts });
+  } catch (err) {
+    console.error('profile api error', err);
+    return NextResponse.json({ error: 'internal' }, { status: 500 });
   }
 }
 
-// POST Request: Saves/Updates user data
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { id, name, avatarUrl} = body;
+    const { id, ...data } = body;
+    if (!id) return NextResponse.json({ error: 'missing id' }, { status: 400 });
 
-    // Reference the specific user document in the "users" collection
-    const userRef = doc(db, "users", id);
-
-    // Save the data to Firestore
-    // { merge: true } means "update existing fields, don't delete the whole document"
-    await setDoc(userRef, {
-      id,
-      name,
-      avatarUrl,
-      lastUpdated: new Date().toISOString()
-    }, { merge: true });
-
-    return NextResponse.json({ message: "Profile updated successfully" });
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+    await dbService.users.update(id, data);
+    return NextResponse.json({ message: 'updated' });
+  } catch (err) {
+    console.error('profile POST error', err);
+    return NextResponse.json({ error: 'internal' }, { status: 500 });
   }
 }
