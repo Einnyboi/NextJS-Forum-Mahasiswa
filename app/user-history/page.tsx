@@ -1,38 +1,116 @@
 'use client'
-import React from "react";
-import { historyData} from "@/lib/historydata";
-import { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { api } from "@/lib/api";
+import { Post } from '@/lib/types';
+import { useCurrentUserId } from '@/lib/hooks';
 
 export default function HistoryPage() {
     const [sortBy, setSortBy] = useState('newest');
+    const [posts, setPosts] = useState<Post[]>([]); 
+    const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+    const { userId: currentUserId, loading: authLoading } = useCurrentUserId();
 
+    // const currentUserId = "user-1"; untuk coba"
+
+    // LOGIKA FETCHING DATA
+    useEffect(() => {
+        if (authLoading) {
+            return;
+        }
+
+        if (!currentUserId) {
+            setPosts([]); 
+            return;
+        }
+
+        const loadPosts = async () => {
+            setIsLoadingPosts(true); 
+            try {
+                // Panggil API Fetcher dengan ID pengguna yang sudah login
+                const data: Post[] = await api.posts.getUserPosts(currentUserId);
+                setPosts(data);
+            } catch (error) {
+                console.error("Error fetching user history:", error);
+                setPosts([]); 
+            } finally {
+                setIsLoadingPosts(false);
+            }
+        };
+
+        loadPosts();
+    }, [currentUserId, authLoading]);
+    
     // Tambahkan tipe untuk event
     const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSortBy(event.target.value);
     };
 
     const sortedActivities = useMemo(() => {
-        // pake historyData
-        const sortableItems = [...historyData]; 
+        const sortableItems = [...posts]; 
 
         switch (sortBy) {
             case 'oldest':
                 // mengurutkan dari tanggal terlama ke terbaru
-                return sortableItems.sort((a, b) => a.date.getTime() - b.date.getTime());
+                return sortableItems.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
             case 'most-likes':
                 // megurutkan dari yang paling banyak like
-                return sortableItems.sort((a, b) => b.likes - a.likes);
+                return sortableItems.sort((a, b) => b.likeCount - a.likeCount);
             case 'most-comments':
                 // mengurutkan dari yang paling banyak komentar
-                return sortableItems.sort((a, b) => b.replies - a.replies);
+                return sortableItems.sort((a, b) => b.commentCount - a.commentCount);
             case 'newest':
             default: // default untuk 'newest' 
                 // mengurutkan dari tanggal terbaru ke terlama
-                return sortableItems.sort((a, b) => b.date.getTime() - a.date.getTime());
+                return sortableItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         }
-    }, [sortBy]);
+    }, [sortBy,posts]);
+
+    // Conditional Rendering
+    
+    let content;
+
+    if (authLoading) {
+        content = <p className="text-center text-muted py-5">Checking login status...</p>;
+    } else if (!currentUserId) {
+        content = <p className="text-center text-danger py-5">Please log in to view your post history.</p>;
+    } else if (isLoadingPosts) {
+        content = <p className="text-center text-muted py-5">Loading your post history...</p>;
+    } else if (sortedActivities.length === 0) {
+        content = <p className="text-center text-muted py-5">No activities found for this user.</p>;
+    } else {
+        // Tampilan List Postingan Normal
+        content = (
+            <div id="activity-container">
+                {sortedActivities.map(post => {
+                    const formattedDate = new Date(post.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                    return ( 
+                        <article className="card activity-post-card p-5 mb-4 rounded-4" style={{ backgroundColor: 'var(--primary-color)' }} key={post.id}>
+                            <h5 className="post-title pb-2" style={{fontSize:'var(--h5-size)'}}>
+                                <Link href={`/posts/${post.id}`}>{post.title}</Link>
+                            </h5>
+                            
+                            <div className="small text-secondary mb-2">
+                                Posted in 
+                                <Link className="text-secondary hover-underline ms-1 fw-bold" id="kategori" href={`/community/${post.communityId}`}>{post.communityName}</Link>
+                                {post.tag && <span className="text-muted ms-2">| {post.tag}</span>}
+                            </div>
+
+                            <p className="mb-3" style={{color:'var(--secondary-color)'}}>{post.content}</p>
+
+                            <div className="pt-2 small text-muted border-top border-secondary d-flex gap-2">
+                                <span>{formattedDate}</span> <span>|</span> 
+                                <span>{post.likeCount} Likes</span> <span>|</span> 
+                                <span>{post.commentCount} Replies</span>
+                            </div>
+                        </article>
+                    );
+                })}
+            </div>
+        );
+    }
 
     return (
         <main className="font-sans">
@@ -65,42 +143,7 @@ export default function HistoryPage() {
                         </div>
 
                         {/* Container Daftar Aktivitas User */}
-                        <div id="activity-container">
-
-                            {/* Pindahkan deklarasi const di dalam map, sebelum return */}
-                            {sortedActivities.map(post => {
-                                // Deklarasi variabel (di dalam scope fungsi map)
-                                const formattedDate = post.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-                                return ( 
-                                    <article className="card activity-post-card p-5 mb-4 rounded-4" style={{ backgroundColor: 'var(--primary-color)' }} key={post.id}>
-                                        
-                                        {/* Baris Judul */}
-                                        <h5 className="post-title pb-2" style={{fontSize:'var(--h5-size)'}}>
-                                            <Link 
-                                                href={post.url}
-                                            >
-                                                {post.title}
-                                            </Link>
-                                        </h5>
-
-                                        <div className="small text-secondary mb-2">
-                                            {/* Tipe Aktivitas dan Kategori */}
-                                            <span className="fw-semibold">{post.type}</span> in category 
-                                            <Link className="text-danger hover-underline ms-1 fw-medium" id="kategori" href={`/category/${post.category}`}>{post.category}</Link>
-                                        </div>
-
-                                        {/* Konten/Excerpt */}
-                                        <p className="mb-3" style={{color:'var(--secondary-color)'}}>{post.content}</p>
-
-                                        {/* Footer */}
-                                        <div className="pt-2 small text-muted border-top border-secondary d-flex gap-2">
-                                            <span>{formattedDate}</span> <span>|</span> <span>{post.likes} Likes</span> <span>|</span> <span>{post.replies} Replies</span>
-                                        </div>
-                                    </article>
-                                );
-                            })}
-                        </div>
+                        {content}
                     </div>
                 </div>
             </div>
