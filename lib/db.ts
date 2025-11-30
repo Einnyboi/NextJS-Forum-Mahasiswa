@@ -60,7 +60,13 @@ export const dbService = {
         commentCount: 0,
       });
       return { id: docRef.id, ...postData };
-    }
+    },
+    // FUNGSI BARU UNTUK HISTORY USER
+    getUserPosts: async (userId: string) => {
+      const q = query(collection(db, 'posts'), where('authorID', '==', userId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => snapToData(doc) as Post);
+    },
   },
 
   // ==============================
