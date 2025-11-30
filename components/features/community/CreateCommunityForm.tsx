@@ -1,61 +1,149 @@
 'use client';
 
-import { Community } from '@/lib/types';
-import { Card, Button } from 'react-bootstrap';
-import Image from 'next/image';
-import { api } from '@/lib/api';
 import { useState } from 'react';
+import { Modal, Form, Button, Alert } from 'react-bootstrap';
 
-type CommunityCardProps = {
-  community: Community;
-  currentUserId: string;
+type CreateCommunityFormProps = {
+  show: boolean;
+  onHide: () => void;
+  onSuccess: () => void;
 };
 
-export default function CommunityCard({ community, currentUserId }: CommunityCardProps) {
+export default function CreateCommunityForm({ show, onHide, onSuccess }: CreateCommunityFormProps) {
+  const [name, setName] = useState('');
+  const [handle, setHandle] = useState('');
+  const [description, setDescription] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isJoined, setIsJoined] = useState(false); // Simple local state for demo
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleJoin = async () => {
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setName(value);
+    // Auto-generate handle from name
+    const autoHandle = value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .substring(0, 30);
+    setHandle(autoHandle);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (!name.trim() || !handle.trim() || !imageUrl.trim()) {
+      setError('Name, handle, and image URL are required');
+      return;
+    }
+
     setIsLoading(true);
+
     try {
-      await api.communities.join(currentUserId, community.id);
-      setIsJoined(true);
-      alert(`You joined ${community.name}!`);
+      const response = await fetch('/api/communities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, handle, description, imageUrl })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Failed to create community');
+        return;
+      }
+
+      setSuccess('Community created successfully!');
+      setTimeout(() => {
+        onSuccess();
+        onHide();
+        // Reset form
+        setName('');
+        setHandle('');
+        setDescription('');
+        setImageUrl('');
+        setSuccess('');
+      }, 1500);
     } catch (error) {
-      console.error(error);
-      alert("Failed to join.");
+      console.error('Error creating community:', error);
+      setError('Failed to create community');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Card className="card-default border-0 h-100 shadow-sm">
-      <Card.Body className="d-flex flex-column align-items-center text-center p-4">
-        <Image
-          src={community.imageUrl}
-          alt={community.name}
-          width={80}
-          height={80}
-          className="rounded-circle mb-3 border"
-          unoptimized
-        />
+    <Modal show={show} onHide={onHide} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Create New Community</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {error && <Alert variant="danger">{error}</Alert>}
+        {success && <Alert variant="success">{success}</Alert>}
         
-        <h5 className="fw-bold mb-1">{community.name}</h5>
-        
-        <p className="text-muted small mb-3 flex-grow-1">
-          {community.description || "No description available."}
-        </p>
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3">
+            <Form.Label>Community Name *</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="e.g., Computer Science Students"
+              value={name}
+              onChange={handleNameChange}
+              disabled={isLoading}
+            />
+          </Form.Group>
 
-        <Button 
-          variant={isJoined ? "outline-success" : "primary"} 
-          className="w-100 rounded-pill"
-          onClick={handleJoin}
-          disabled={isLoading || isJoined}
-        >
-          {isLoading ? 'Joining...' : (isJoined ? 'Joined' : 'Join Community')}
-        </Button>
-      </Card.Body>
-    </Card>
+          <Form.Group className="mb-3">
+            <Form.Label>Handle * <small className="text-muted">(unique identifier)</small></Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="e.g., computer-science-students"
+              value={handle}
+              onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+              disabled={isLoading}
+            />
+            <Form.Text className="text-muted">
+              This will be your community's unique URL: /community/{handle || 'your-handle'}
+            </Form.Text>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Description</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              placeholder="What's this community about?"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={isLoading}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Image URL *</Form.Label>
+            <Form.Control
+              type="url"
+              placeholder="https://example.com/image.jpg"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              disabled={isLoading}
+            />
+          </Form.Group>
+
+          <div className="d-flex gap-2">
+            <Button variant="secondary" onClick={onHide} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" disabled={isLoading}>
+              {isLoading ? 'Creating...' : 'Create Community'}
+            </Button>
+          </div>
+        </Form>
+      </Modal.Body>
+    </Modal>
   );
 }

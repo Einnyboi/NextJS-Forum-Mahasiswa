@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { dbService } from '@/lib/db';
 
 interface UserData {
     id: string;
@@ -34,6 +36,7 @@ const getStoredUsers = (): UserData[] => {
 };
 
 const Login: React.FC = () => {
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState<ErrorState>({});
@@ -65,7 +68,7 @@ const Login: React.FC = () => {
     }, [email, password]);
 
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         clearErrors();
 
@@ -74,30 +77,39 @@ const Login: React.FC = () => {
         setLoading(true);
 
         try {
-            const users = getStoredUsers();
+            // ❌ OLD: const users = getStoredUsers();
+            // ✅ NEW: Ask Firebase for the user
+            const user = await dbService.users.getByEmail(email);
 
-            // Find user
-            const user = users.find(u => u.email === email);
-
+            // 1. Check if user exists in Firebase
             if (!user) {
-                setErrors({ email: 'Email tidak ditemukan!' });
+                setErrors({ email: 'Email tidak ditemukan di database!' });
                 setLoading(false);
                 return;
             }
 
+            // 2. Check Password
+            // (Assuming your user object in Firebase has a 'password' field)
             if (user.password !== password) {
                 setErrors({ password: 'Password salah!' });
                 setLoading(false);
                 return;
             }
 
-            setSuccessMessage(`Login berhasil! Selamat datang, ${user.fullName}.`);
+            // 3. Login Success
+            setSuccessMessage(`Login berhasil! Selamat datang, ${user.fullName || 'User'}.`);
+            
+            // Save basic info to localStorage so the app "remembers" they are logged in
+            localStorage.setItem('currentUser', JSON.stringify(user));
 
-            setEmail('');
-            setPassword('');
+            // Redirect
+            setTimeout(() => {
+                router.push('/'); // Change to your dashboard URL
+            }, 1500);
+
         } catch (error) {
             console.error("Login error:", error);
-            setErrors({ general: 'Terjadi kesalahan. Coba lagi.' });
+            setErrors({ general: 'Terjadi kesalahan sistem.' });
         } finally {
             setLoading(false);
         }
