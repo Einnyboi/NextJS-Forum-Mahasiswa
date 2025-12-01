@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { dbService } from '@/lib/db';
 
 interface UserData {
     id: string;
@@ -20,20 +22,8 @@ interface ErrorState {
     general?: string;
 }
 
-const getStoredUsers = (): UserData[] => {
-    if (typeof window !== 'undefined') {
-        try {
-            const users = localStorage.getItem('foma_users');
-            return users ? JSON.parse(users) : [];
-        } catch (e) {
-            console.error("Error parsing users from localStorage:", e);
-            return [];
-        }
-    }
-    return [];
-};
-
 const Login: React.FC = () => {
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState<ErrorState>({});
@@ -64,8 +54,13 @@ const Login: React.FC = () => {
         return isValid;
     }, [email, password]);
 
+    // --- FITUR BARU: Auto-fill untuk Admin (Hanya untuk memudahkan test) ---
+    const fillAdminDemo = () => {
+        setEmail('admin@foma.com'); // Sesuaikan dengan email admin di DB Anda
+        setPassword('admin123');    // Sesuaikan dengan password admin
+    };
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         clearErrors();
 
@@ -74,35 +69,47 @@ const Login: React.FC = () => {
         setLoading(true);
 
         try {
-            const users = getStoredUsers();
+            // Menggunakan dbService sesuai kode asli Anda
+            const user = await dbService.users.getByEmail(email);
 
-            // Find user
-            const user = users.find(u => u.email === email);
-
+            // 1. Cek user ada atau tidak
             if (!user) {
-                setErrors({ email: 'Email tidak ditemukan!' });
+                setErrors({ email: 'Email tidak ditemukan di database!' });
                 setLoading(false);
                 return;
             }
 
+            // 2. Cek Password (Sesuai kode asli Anda)
             if (user.password !== password) {
                 setErrors({ password: 'Password salah!' });
                 setLoading(false);
                 return;
             }
 
-            setSuccessMessage(`Login berhasil! Selamat datang, ${user.fullName}.`);
+            // 3. Login Berhasil
+            setSuccessMessage(`Login berhasil! Selamat datang, ${user.fullName || 'User'}.`);
+            
+            // Simpan ke localStorage sesuai kode asli
+            localStorage.setItem('currentUser', JSON.stringify(user));
 
-            setEmail('');
-            setPassword('');
+            // --- PERUBAHAN HANYA DI SINI (LOGIKA REDIRECT) ---
+            setTimeout(() => {
+                // Cek Role: Jika Admin ke /admin, jika tidak ke Homepage
+                if (user.role === 'admin') {
+                    router.push('/admin');
+                } else {
+                    router.push('/');
+                }
+            }, 1500);
+            // --------------------------------------------------
+
         } catch (error) {
             console.error("Login error:", error);
-            setErrors({ general: 'Terjadi kesalahan. Coba lagi.' });
+            setErrors({ general: 'Terjadi kesalahan sistem.' });
         } finally {
             setLoading(false);
         }
     };
-
 
     return (
         <div className="flex justify-center items-start min-h-screen pt-20 pb-10 bg-[#c7d6d5]">
@@ -135,7 +142,7 @@ const Login: React.FC = () => {
                 }
 
                 .form-group label {
-                    display: block
+                    display: block;
                     font-weight: 600;
                     margin-bottom: 0.5rem;
                     color: var(--secondary-color);
@@ -186,6 +193,25 @@ const Login: React.FC = () => {
                     transform: none;
                     box-shadow: none;
                     color: rgba(12, 18, 12, 0.5);
+                }
+
+                /* Styling tambahan untuk tombol Demo */
+                .adminDemoBtn {
+                    display: block;
+                    width: 100%;
+                    padding: 0.7rem;
+                    border: 1px solid var(--secondary-color);
+                    background: transparent;
+                    color: var(--secondary-color);
+                    border-radius: 8px;
+                    font-weight: 600;
+                    margin-top: 1rem;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .adminDemoBtn:hover {
+                    background: var(--secondary-color);
+                    color: var(--white-color);
                 }
 
                 .error {
@@ -268,6 +294,15 @@ const Login: React.FC = () => {
                         disabled={loading}
                     >
                         {loading ? 'Logging In...' : 'Login'}
+                    </button>
+
+                    {/* Tombol Demo Admin (Ditambahkan di sini) */}
+                    <button 
+                        type="button" 
+                        onClick={fillAdminDemo}
+                        className="adminDemoBtn"
+                    >
+                        Login as Admin (Demo)
                     </button>
                 </form>
 

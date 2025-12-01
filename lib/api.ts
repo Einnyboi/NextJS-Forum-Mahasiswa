@@ -6,11 +6,14 @@ import {
   addDoc,
   query,
   orderBy,
-  where
+  where,
+  updateDoc,
+  arrayUnion,
+  arrayRemove
 } from "firebase/firestore";
-import { db } from "./firebase"; // Pastikan path ini sesuai dengan lokasi firebase.ts Anda
+import { db } from "./firebase"; // Pastikan path ini benar
 
-// Definisi Tipe Data Post
+// --- DEFINISI TIPE DATA (TYPES) ---
 export interface PostData {
   id: string;
   title: string;
@@ -21,13 +24,20 @@ export interface PostData {
   createdAt?: any;
 }
 
+export interface CommunityData {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  members?: string[]; // Array of User IDs
+}
+
+// --- API OBJECT ---
 export const api = {
 
-  // --- BAGIAN ADMIN ---
+  // 1. BAGIAN ADMIN
   admin: {
-    // Mengambil semua user (Kita simpan logika Firestore di sini nanti jika perlu)
     getAllUsers: async () => {
-      // Logic ambil user dari Firestore 'users' collection
       try {
         const querySnapshot = await getDocs(collection(db, "users"));
         return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -37,40 +47,45 @@ export const api = {
       }
     },
     deleteUser: async (userId: string) => {
-        // Logic delete user (Hanya delete data di Firestore, Auth perlu Admin SDK)
-        return {}; 
+        // Note: Menghapus user dari Auth membutuhkan Admin SDK (Backend).
+        // Di sini kita hanya bisa menghapus data profile mereka di Firestore.
+        try {
+            await deleteDoc(doc(db, "users", userId));
+            return true;
+        } catch (error) {
+            console.error("Error deleting user data:", error);
+            return false;
+        }
     }
   },
 
-  // --- BAGIAN POSTS (HOMEPAGE & ADMIN) ---
+  // 2. BAGIAN POSTS
   posts: {
-    // 1. AMBIL SEMUA POST
+    // Ambil semua post
     getAll: async (): Promise<PostData[]> => {
       try {
         const postsRef = collection(db, "posts");
-        // Menggunakan query biasa dulu (tanpa orderBy untuk menghindari error index di awal)
+        // Kita gunakan query tanpa orderBy dulu untuk menghindari error index Firestore
         const q = query(postsRef); 
         const querySnapshot = await getDocs(q);
         
-        const posts = querySnapshot.docs.map(doc => ({
+        return querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         })) as PostData[];
-        
-        return posts;
       } catch (error) {
         console.error("Error getting posts:", error);
         return [];
       }
     },
 
-    // 2. AMBIL POST BERDASARKAN KOMUNITAS (FILTER)
+    // Ambil post by Community (Filter)
     getByCommunity: async (communityId: string) => {
-       // Logic filter Firestore nanti bisa ditambahkan di sini
+       // Logic filter Firestore placeholder
        return [];
     },
 
-    // 3. BUAT POST BARU (CREATE)
+    // Buat Post Baru
     create: async (data: any) => {
       try {
         await addDoc(collection(db, "posts"), {
@@ -84,7 +99,7 @@ export const api = {
       }
     },
 
-    // 4. HAPUS POST (DELETE) - INI YANG DIPAKAI ADMIN
+    // Hapus Post (Untuk Admin & User)
     delete: async (postId: string) => {
       try {
         await deleteDoc(doc(db, "posts", postId));
@@ -95,20 +110,73 @@ export const api = {
       }
     },
 
-    // 5. LIKE POST
+    // Like Post
     like: async (postId: string) => {
-      // Logic like Firestore
+      // Placeholder logic
       return;
     }
   },
   
-  // --- BAGIAN COMMUNITIES ---
+  // 3. BAGIAN COMMUNITIES (Diubah ke Firebase Langsung)
   communities: {
-    join: async (userId: string, communityId: string) => { return; },
-    leave: async (userId: string, communityId: string) => { return; },
+    // Create Community
+    create: async (data: {name: string; description: string; imageUrl: string}) => {
+      try {
+        await addDoc(collection(db, "communities"), {
+            ...data,
+            members: [],
+            createdAt: new Date()
+        });
+        return true;
+      } catch (error) {
+        console.error("Error creating community:", error);
+        return false;
+      }
+    },
+
+    // Get All Communities
+    getAll: async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "communities"));
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      } catch (error) {
+        console.error("Error fetching communities:", error);
+        return [];
+      }
+    },
+
+    // Join Community
+    join: async (userId: string, communityId: string) => {
+      try {
+        const commRef = doc(db, "communities", communityId);
+        // Tambahkan userId ke array 'members'
+        await updateDoc(commRef, {
+            members: arrayUnion(userId)
+        });
+        return true;
+      } catch (error) {
+        console.error("Error joining community:", error);
+        return false;
+      }
+    },
+
+    // Leave Community
+    leave: async (userId: string, communityId: string) => {
+      try {
+        const commRef = doc(db, "communities", communityId);
+        // Hapus userId dari array 'members'
+        await updateDoc(commRef, {
+            members: arrayRemove(userId)
+        });
+        return true;
+      } catch (error) {
+        console.error("Error leaving community:", error);
+        return false;
+      }
+    },
   },
 
-  // --- BAGIAN COMMENTS ---
+  // 4. BAGIAN COMMENTS
   comments: {
     getByPost: async (postId: string) => { return []; },
     create: async (data: any) => { return; }

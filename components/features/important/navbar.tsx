@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
@@ -10,27 +10,66 @@ import { Search, Github as User, LogOut, History } from 'lucide-react';
 
 interface AppNavbarProps
 {
-    onNavChange: (view: string) => void;
-    isLoggedIn: boolean;
+    onNavChange?: (view: string) => void;
+    isLoggedIn?: boolean;
 }
 
 function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps) 
 {
+    // router fallback when no onNavChange handler is provided
+    const router = require('next/navigation').useRouter?.() ?? null;
+
     const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
         e.preventDefault();
-        onNavChange('login'); 
+        if (onNavChange) onNavChange('login');
+        else if (router) router.push('/login');
     }
 
     const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
         e.preventDefault();
-        onNavChange('signup');
+        if (onNavChange) onNavChange('signup');
+        else if (router) router.push('/signup');
     }
+
+    const handleLogout = (e: React.MouseEvent) => {
+        e.preventDefault();
+        // clear localStorage
+        if (typeof window !== 'undefined') {
+            window.localStorage.removeItem('currentUser');
+        }
+        setLoggedIn(false);
+        // redirect to home
+        if (router) router.push('/');
+    };
+
+    const [loggedIn, setLoggedIn] = useState<boolean>(Boolean(isLoggedIn));
+
+    useEffect(() => {
+        // initialise from localStorage
+        try {
+            const stored = typeof window !== 'undefined' ? window.localStorage.getItem('currentUser') : null;
+            setLoggedIn(Boolean(stored));
+        } catch (e) {
+            setLoggedIn(Boolean(isLoggedIn));
+        }
+
+        // update on storage events (login/logout in other tabs)
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === 'currentUser') {
+                setLoggedIn(Boolean(e.newValue));
+            }
+        }
+        if (typeof window !== 'undefined') window.addEventListener('storage', onStorage);
+        return () => {
+            if (typeof window !== 'undefined') window.removeEventListener('storage', onStorage);
+        }
+    }, [isLoggedIn]);
 
     const checking = () =>
     {
-        if (isLoggedIn)
+        if (loggedIn)
         {
             return (
                 <Nav className="my-2 my-lg-0 profile-dropdown-toggle">
@@ -39,7 +78,7 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                         id="navbarScrollingDropdown" 
                         align="end"
                     >
-                        <NavDropdown.Item href="profile.tsx">
+                        <NavDropdown.Item href="/profile">
                             <User size={18} className="me-2" />
                             Profile
                         </NavDropdown.Item>
@@ -48,7 +87,7 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                             History
                         </NavDropdown.Item>
                         <NavDropdown.Divider />
-                        <NavDropdown.Item href="#logout">
+                        <NavDropdown.Item onClick={handleLogout}>
                             <LogOut size={18} className="me-2" />
                             Logout
                         </NavDropdown.Item>
@@ -61,13 +100,13 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
             return (
                 <Nav className="d-flex align-items-center signin">
                     <Button 
-                        className='loginBtn'
+                        className='lgnBtn'
                         onClick={handleLoginClick}
                     >
                         Login
                     </Button>
                     <Button 
-                        className='loginBtn'
+                        className='lgnBtn'
                         onClick={handleSignupClick}
                     >
                         Sign Up
@@ -82,7 +121,7 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
             <Navbar expand="lg" className='navigation'>
                 <Container fluid>
                     <Navbar.Brand
-                        href='#'
+                        href='/'
                         className="navi-title"
                     >
                         Foma
@@ -187,7 +226,7 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                     position: relative;
                 }
 
-                .loginBtn
+                .lgnBtn
                 {
                     padding: 0.5rem 0.2rem;
                     border-radius: 50px;
@@ -199,14 +238,14 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                     transition: all 0.3s ease;
                 }
 
-                .loginBtn
+                .lgnBtn
                 {
                     background-color: transparent;
                     color: var(--secondary-color);
                     border: 2px solid var(--primary-color);
                 }
 
-                .loginBtn:hover
+                .lgnBtn:hover
                 {
                     background-color: var(--primary-color);
                     color: var(--secondary-color);

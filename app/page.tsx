@@ -5,7 +5,7 @@ import Navbar from "@/components/layout/navbar";
 import Sidebar from "@/components/layout/sidebar";
 import SignupForm from "./signup/page";
 import LoginForm from "./Login/page";
-// Firebase & API
+// Firebase & API Imports
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase"; 
@@ -15,7 +15,7 @@ import { api, PostData } from "@/lib/api";
 interface CreateModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: () => void; // Untuk refresh feed setelah submit
+    onSubmit: () => void; 
     userEmail: string;
 }
 
@@ -31,7 +31,6 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail }: CreateModalPr
         e.preventDefault();
         setIsSubmitting(true);
 
-        // Panggil API create post yang sudah kita buat
         const success = await api.posts.create({
             title,
             content,
@@ -44,11 +43,10 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail }: CreateModalPr
         setIsSubmitting(false);
 
         if (success) {
-            // Reset form dan tutup modal
             setTitle("");
             setContent("");
             setCategory("community");
-            onSubmit(); // Refresh feed di halaman utama
+            onSubmit(); 
             onClose();
         } else {
             alert("Gagal membuat postingan. Coba lagi.");
@@ -113,7 +111,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail }: CreateModalPr
     );
 };
 
-// --- KOMPONEN KARTU THREAD ---
+// --- KOMPONEN KARTU THREAD (REUSABLE) ---
 const ThreadCard = ({ thread }: { thread: PostData }) => (
   <div className="thread-card">
     <div className="thread-header">
@@ -125,8 +123,10 @@ const ThreadCard = ({ thread }: { thread: PostData }) => (
       </div>
       <span className="post-date">{thread.date}</span>
     </div>
+    
     <h3 className="thread-title">{thread.title}</h3>
     <p className="thread-content">{thread.content}</p>
+    
     <div className="thread-footer">
       <span className={`category-badge ${thread.category}`}>
         {thread.category === 'community' ? 'Community' : 'Event'}
@@ -139,9 +139,9 @@ const ThreadCard = ({ thread }: { thread: PostData }) => (
 const FeedContent = ({ view, user }: { view: string, user: any }) => {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State untuk Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fetch Data
+  // Fetch Data dari Firestore
   const fetchPosts = async () => {
     setLoading(true);
     const data = await api.posts.getAll();
@@ -153,7 +153,7 @@ const FeedContent = ({ view, user }: { view: string, user: any }) => {
     fetchPosts();
   }, []);
 
-  // Filter
+  // Filter Data
   const filteredThreads = posts.filter(thread => {
     if (view === 'home') return true; 
     return thread.category === view;
@@ -167,7 +167,6 @@ const FeedContent = ({ view, user }: { view: string, user: any }) => {
 
   return (
     <div>
-      {/* Banner */}
       <div className="welcome-banner">
         <h2 className="welcome-title">{getTitle()}</h2>
         <p className="welcome-text">
@@ -175,25 +174,23 @@ const FeedContent = ({ view, user }: { view: string, user: any }) => {
           Bagikan ide atau acara terbaru kepada teman-temanmu.
         </p>
         
-        {/* Tombol Buka Modal (Hanya muncul jika login) */}
+        {/* Tombol Buat Postingan */}
         {user ? (
             <button className="btn-create-test" onClick={() => setIsModalOpen(true)}>
                 + Buat Postingan Baru
             </button>
         ) : (
-            <p className="text-sm text-red-500 mt-2">Login untuk membuat postingan.</p>
+            <p className="text-sm text-red-500 mt-2 font-medium">Login untuk membuat postingan.</p>
         )}
       </div>
 
-      {/* Modal Form */}
       <CreatePostModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onSubmit={fetchPosts} // Refresh feed setelah submit
+        onSubmit={fetchPosts} 
         userEmail={user?.email}
       />
 
-      {/* List Feed */}
       {loading ? (
           <p className="state-message">Memuat postingan...</p>
       ) : filteredThreads.length > 0 ? (
@@ -214,6 +211,7 @@ export default function Home() {
     const [currentView, setCurrentView] = useState('home');
     const [user, setUser] = useState<any>(null);
 
+    // Cek Login
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
@@ -246,11 +244,20 @@ export default function Home() {
 
     return (
       <div>
-          <Navbar onNavChange={setCurrentView} isLoggedIn={!!user} userRole={user?.role} />
+          <Navbar 
+            onNavChange={setCurrentView} 
+            isLoggedIn={!!user} 
+            userRole={user?.role} 
+          />
           
           <div className="main-container">
               <div className="main-dashboard-layout">
-                <Sidebar activeView={currentView} onMenuClick={setCurrentView} />
+                {/* Kirim props ke Sidebar */}
+                <Sidebar 
+                    activeView={currentView} 
+                    onMenuClick={setCurrentView} 
+                />
+                
                 <div className="main-content">
                     {renderMainContent()}
                 </div>

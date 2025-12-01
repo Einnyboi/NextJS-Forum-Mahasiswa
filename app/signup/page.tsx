@@ -1,9 +1,10 @@
 'use client';
 import React, { useState, useCallback } from 'react';
+import { db } from '@/lib/firebase';
+import { addDoc, collection } from "firebase/firestore";
 
-interface UserData
+interface UserProfileData
 {
-    id: string;
     fullName: string;
     email: string;
     password: string;
@@ -30,33 +31,7 @@ interface ErrorState
     general?: string;
 }
 
-const getStoredUsers = (): UserData[] =>
-{
-    if (typeof window !== 'undefined')
-    {
-        try
-        {
-            const users = localStorage.getItem('foma_users');
-            return users ? JSON.parse(users) : [];
-        }
-        catch (e)
-        {
-            console.error("Error parsing users from localStorage:", e);
-            return [];
-        }
-    }
-    return [];
-};
-
-const saveUsers = (users: UserData[]) =>
-{
-    if (typeof window !== 'undefined')
-    {
-        localStorage.setItem('foma_users', JSON.stringify(users));
-    }
-};
-
-const signup: React.FC = () =>
+const Signup: React.FC = () =>
 {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
@@ -122,48 +97,28 @@ const signup: React.FC = () =>
 
         try
         {
-            // 1. Get existing users from local storage
-            const existingUsers = getStoredUsers();
-
-            // 2. Check if email is already in use
-            const emailExists = existingUsers.some(user => user.email === email);
-
-            if (emailExists) {
-                setLoading(false);
-                // Matches the original Firebase error code check
-                setErrors({ email: 'Email sudah terdaftar!' });
-                return;
-            }
-
-            // 3. Create new user object (using email as a simple ID)
-            const newUser: UserData = {
-                id: email, 
+            const newUserProfile: UserProfileData =
+            {
                 fullName: fullName,
                 email: email,
-                password: password, 
+                password: password,
                 registrationDate: new Date().toISOString(),
-                role: "user",
+                role: "user", 
             };
 
-            // 4. Add new user and save to local storage
-            existingUsers.push(newUser);
-            saveUsers(existingUsers);
+            await addDoc(collection(db, "users"), newUserProfile);
 
-            // Success feedback 
             setSuccessMessage('Pendaftaran akun berhasil! Silakan login.');
             
-            // Clear form after successful sign up
             setFullName('');
             setEmail('');
             setPassword('');
             setConfirmPassword('');
-            
         }
         catch (error)
         {
-            // Handle unexpected local storage errors or parsing issues
-            console.error("Sign up error:", error);
-            setErrors({ general: 'Pendaftaran gagal. Gagal menyimpan data lokal.' });
+            console.error("Sign up error : ", error);
+            setErrors({ general: 'Pendaftaran Anda gagal. Silahkan coba lagi atau hubungi Admin jika masih tidak berhasil.' });
         }
         finally
         {
@@ -389,4 +344,4 @@ const signup: React.FC = () =>
     );
 };
 
-export default signup;
+export default Signup;
