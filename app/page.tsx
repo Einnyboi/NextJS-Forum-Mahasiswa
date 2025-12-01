@@ -5,66 +5,252 @@ import Navbar from "@/components/layout/navbar";
 import Sidebar from "@/components/layout/sidebar";
 import SignupForm from "./signup/page";
 import LoginForm from "./Login/page";
-
-// --- IMPORT FIREBASE ---
+// Firebase & API
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase"; // Sesuaikan path import ini
+import { auth, db } from "@/lib/firebase"; 
+import { api, PostData } from "@/lib/api";
 
-// Tipe data untuk User
-interface UserSession {
-    uid: string;
-    email: string | null;
-    role: string; // 'admin' atau 'user'
+// --- KOMPONEN MODAL CREATE POST ---
+interface CreateModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: () => void; // Untuk refresh feed setelah submit
+    userEmail: string;
 }
 
-// Komponen konten default
-const DefaultHomeContent = ({ user }: { user: UserSession | null }) => (
-  <div className="card-default" style={{ background: 'white', padding: '2rem', borderRadius: '12px' }}>
-      <h3 className="card-title text-xl font-bold">Welcome Back{user?.email ? `, ${user.email}` : ''}!</h3>
-      <p className="mb-4">Select an option from the sidebar to view your dashboard.</p>
-      
-      {/* Pesan khusus jika Admin (Opsional) */}
-      {user?.role === 'admin' && (
-        <div style={{ padding: '1rem', background: '#d1fae5', color: '#065f46', borderRadius: '8px', marginTop: '1rem' }}>
-            <strong>Status: Admin Access Active</strong>
+const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail }: CreateModalProps) => {
+    const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
+    const [category, setCategory] = useState("community");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    if (!isOpen) return null;
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        // Panggil API create post yang sudah kita buat
+        const success = await api.posts.create({
+            title,
+            content,
+            author: userEmail || "Anonymous",
+            category: category as 'community' | 'event',
+            date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }),
+            createdAt: new Date()
+        });
+
+        setIsSubmitting(false);
+
+        if (success) {
+            // Reset form dan tutup modal
+            setTitle("");
+            setContent("");
+            setCategory("community");
+            onSubmit(); // Refresh feed di halaman utama
+            onClose();
+        } else {
+            alert("Gagal membuat postingan. Coba lagi.");
+        }
+    };
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h3 className="modal-title">Buat Postingan Baru</h3>
+                    <button className="btn-close" onClick={onClose}>&times;</button>
+                </div>
+                
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label className="form-label">Judul</label>
+                        <input 
+                            type="text" 
+                            className="form-input" 
+                            placeholder="Apa topik diskusinya?"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">Kategori</label>
+                        <select 
+                            className="form-select"
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                        >
+                            <option value="community">Community (Diskusi)</option>
+                            <option value="event">Event (Acara)</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">Isi Konten</label>
+                        <textarea 
+                            className="form-textarea" 
+                            placeholder="Tulis detail lengkap di sini..."
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="modal-actions">
+                        <button type="button" className="btn-cancel" onClick={onClose}>
+                            Batal
+                        </button>
+                        <button type="submit" className="btn-submit" disabled={isSubmitting}>
+                            {isSubmitting ? "Memposting..." : "Posting Sekarang"}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-      )}
+    );
+};
+
+// --- KOMPONEN KARTU THREAD ---
+const ThreadCard = ({ thread }: { thread: PostData }) => (
+  <div className="thread-card">
+    <div className="thread-header">
+      <div className="author-info">
+        <div className="author-avatar">
+            {thread.author ? thread.author.charAt(0) : 'A'}
+        </div>
+        <span className="author-name">{thread.author}</span>
+      </div>
+      <span className="post-date">{thread.date}</span>
+    </div>
+    <h3 className="thread-title">{thread.title}</h3>
+    <p className="thread-content">{thread.content}</p>
+    <div className="thread-footer">
+      <span className={`category-badge ${thread.category}`}>
+        {thread.category === 'community' ? 'Community' : 'Event'}
+      </span>
+    </div>
   </div>
 );
 
+// --- KOMPONEN FEED UTAMA ---
+const FeedContent = ({ view, user }: { view: string, user: any }) => {
+  const [posts, setPosts] = useState<PostData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State untuk Modal
+
+  // Fetch Data
+  const fetchPosts = async () => {
+    setLoading(true);
+    const data = await api.posts.getAll();
+    setPosts(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  // Filter
+  const filteredThreads = posts.filter(thread => {
+    if (view === 'home') return true; 
+    return thread.category === view;
+  });
+
+  const getTitle = () => {
+      if (view === 'community') return 'Community Discussions';
+      if (view === 'event') return 'Upcoming Events';
+      return 'Home Feed';
+  }
+
+  return (
+    <div>
+      {/* Banner */}
+      <div className="welcome-banner">
+        <h2 className="welcome-title">{getTitle()}</h2>
+        <p className="welcome-text">
+          Welcome back{user?.email ? `, ${user.email}` : ''}! 
+          Bagikan ide atau acara terbaru kepada teman-temanmu.
+        </p>
+        
+        {/* Tombol Buka Modal (Hanya muncul jika login) */}
+        {user ? (
+            <button className="btn-create-test" onClick={() => setIsModalOpen(true)}>
+                + Buat Postingan Baru
+            </button>
+        ) : (
+            <p className="text-sm text-red-500 mt-2">Login untuk membuat postingan.</p>
+        )}
+      </div>
+
+      {/* Modal Form */}
+      <CreatePostModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSubmit={fetchPosts} // Refresh feed setelah submit
+        userEmail={user?.email}
+      />
+
+      {/* List Feed */}
+      {loading ? (
+          <p className="state-message">Memuat postingan...</p>
+      ) : filteredThreads.length > 0 ? (
+        filteredThreads.map(thread => (
+          <ThreadCard key={thread.id} thread={thread} />
+        ))
+      ) : (
+        <p className="state-message">
+            Belum ada postingan di kategori ini. Jadilah yang pertama!
+        </p>
+      )}
+    </div>
+  );
+};
+
+// --- HALAMAN UTAMA ---
 export default function Home() {
     const [currentView, setCurrentView] = useState('home');
-    const [user, setUser] = useState<UserSession | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<any>(null);
 
-    // Function to determine which content component to display
-    const renderMainContent = () =>
-      {
-        if (currentView === 'signup')
-        {
-          return <SignupForm />;
-        }
-          else if (currentView === 'login')
-        {
-        return <LoginForm />;
-        }
-        return <DefaultHomeContent user={null} />;
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            if (firebaseUser) {
+                try {
+                    const docRef = doc(db, "users", firebaseUser.uid);
+                    const docSnap = await getDoc(docRef);
+                    let role = 'user';
+                    if (docSnap.exists()) role = docSnap.data().role || 'user';
+
+                    setUser({
+                        uid: firebaseUser.uid,
+                        email: firebaseUser.email,
+                        role: role
+                    });
+                } catch (error) {
+                    console.error("Error fetching role:", error);
+                }
+            } else {
+                setUser(null);
+            }
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const renderMainContent = () => {
+        if (currentView === 'signup') return <SignupForm />;
+        if (currentView === 'login') return <LoginForm />;
+        return <FeedContent view={currentView} user={user} />;
     };
 
     return (
       <div>
-          {/* Kirim data role ke Navbar agar tombol Admin bisa muncul */}
-          <Navbar 
-            onNavChange={setCurrentView} 
-            isLoggedIn={!!user} 
-            userRole={user?.role} 
-          />
+          <Navbar onNavChange={setCurrentView} isLoggedIn={!!user} userRole={user?.role} />
           
           <div className="main-container">
               <div className="main-dashboard-layout">
-                <Sidebar></Sidebar>
-                
+                <Sidebar activeView={currentView} onMenuClick={setCurrentView} />
                 <div className="main-content">
                     {renderMainContent()}
                 </div>
