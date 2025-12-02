@@ -16,10 +16,17 @@ import {
   query, 
   where 
 } from 'firebase/firestore';
-import { Post, Community, User } from './types';
+import { Post, Community, User, SearchResult } from './types';
 import { get } from 'http';
 
 const snapToData = (doc: any) => ({ id: doc.id, ...doc.data() });
+
+// Fungsi utilitas untuk pencarian partial match (case-insensitive).
+const isPartialMatch = (text: string | undefined, query: string): boolean => {
+    if (!text) return false;
+    // Konversi ke lowercase untuk pencarian yang tidak sensitif huruf besar/kecil
+    return text.toLowerCase().includes(query.toLowerCase());
+};
 
 export const dbService = {
   // ==============================
@@ -183,5 +190,53 @@ export const dbService = {
       await updateDoc(userRef, data);
       return { id, ...data };
     }
-  }
+  },
+  // ==============================
+  // SEARCH
+  // ==============================
+  search: {
+    getResults: async (query: string): Promise<SearchResult[]> => {
+        if (!query) return [];        
+        const results: SearchResult[] = [];
+        // mengambil SEMUA Komunitas 
+        const communitiesSnapshot = await getDocs(collection(db, 'communities'));
+        communitiesSnapshot.docs.forEach(doc => {
+          const data = doc.data() as Community;    
+           // Cari di Nama ATAU Deskripsi Komunitas
+          if (isPartialMatch(data.name, query) || isPartialMatch(data.description, query)) {
+            results.push({
+              id: doc.id,
+              type: 'community',
+              title: data.name,
+              description: data.description || 'No description provided.',
+              category: 'Community', 
+              imageUrl: data.imageUrl,
+            } as SearchResult);
+          }
+        });
+
+         // Ambil SEMUA Postingan
+        const postsSnapshot = await getDocs(collection(db, 'posts'));
+
+        postsSnapshot.docs.forEach(doc => {
+          const data = doc.data() as Post;
+                
+          // Cari di Title ATAU Content Postingan
+          if (isPartialMatch(data.title, query) || isPartialMatch(data.content, query)) {
+            results.push({
+                id: doc.id,
+                type: 'post',
+                title: data.title,
+                // Ambil 100 karakter pertama sebagai deskripsi
+                description: data.content.substring(0, 100) + (data.content.length > 100 ? '...' : ''), 
+                category: data.communityName, 
+                author: data.authorName,
+                imageUrl: data.communityImageUrl,
+            } as SearchResult);
+          }
+        });
+
+        return results;
+    }
+  },
 };

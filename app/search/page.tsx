@@ -1,16 +1,26 @@
 'use client'; 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useMemo } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { categories, popularSearch, fetchResults } from '@/lib/searchdata';
+import { popularSearch } from '@/lib/searchdata'; 
+import { api } from '@/lib/api'; 
 import { Search } from 'lucide-react';
 
+// Tipe data untuk Hasil Pencarian
 type SearchResult = {
   id: number;
-  type: string;
+  type: string; // Harus 'community' atau 'post' agar pengelompokan berhasil
   title: string;
   category: string;
   author: string;
   description: string;
+};
+
+// Tipe data untuk Komunitas/Kategori
+type CommunityResult = {
+  id: string;
+  name: string; 
+  description: string;
+  imageUrl: string;
 };
 
 export default function SearchPage() {
@@ -18,11 +28,17 @@ export default function SearchPage() {
   const pathname = usePathname(); 
   const searchParams = useSearchParams();
   const currentQuery = searchParams?.get('q') ?? null;
-  const [inputValue, setInputValue] = useState(currentQuery ?? ''); // State untuk input form
-  const [isFocused, setIsFocused] = useState(false);// State untuk melacak fokus input
-  const [results, setResults] = useState<SearchResult[]>([]);// State untuk menyimpan hasil pencarian
+  
+  const [inputValue, setInputValue] = useState(currentQuery ?? ''); 
+  const [isFocused, setIsFocused] = useState(false);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // States untuk Kategori (Komunitas)
+  const [categoriesList, setCategoriesList] = useState<CommunityResult[]>([]); 
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+
+  // FETCHING DATA HASIL PENCARIAN
   useEffect(() => {
     if (currentQuery) {
 
@@ -32,12 +48,14 @@ export default function SearchPage() {
 
       const run = async () => {
         try {
-          const data = await fetchResults(currentQuery);
+          const data: SearchResult[] = await api.search.getResults(currentQuery);
+          
           if (!cancelled) {
             setResults(data);
           }
         } catch (error) {
-          console.error('Failed to fetch results:', error);
+          console.error('Failed to fetch search results:', error);
+          setResults([]);
         } finally {
           if (!cancelled) setIsLoading(false);
         }
@@ -54,18 +72,41 @@ export default function SearchPage() {
       setIsLoading(false); 
     }
   }, [currentQuery]); 
+  
+  //  FETCHING DATA KATEGORI (KOMUNITAS)
+  useEffect(() => {
+    const loadCategories = async () => {
+      setIsLoadingCategories(true);
+      try {
+        // Menggunakan api.communities.getAll()
+        const data: CommunityResult[] = await api.communities.getAll();
+        setCategoriesList(data);
+      } catch (error) {
+        console.error("Failed to fetch categories/communities:", error);
+        setCategoriesList([]);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
 
-  // HANDLER UNTUK FORM
+    loadCategories();
+  }, []); 
+
+  // LOGIKA PENGELOMPOKAN HASIL
+  const groupedResults = useMemo(() => {
+    const communities = results.filter(r => r.type === 'community');
+    const posts = results.filter(r => r.type === 'post');
+    return { communities, posts };
+  }, [results]);
+
+  //  HANDLERS
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!inputValue.trim()) return; 
-
-    setIsFocused(false); // Sembunyikan suggestions saat submit
-  
+    setIsFocused(false); 
     router.push(`${pathname}?q=${inputValue}`);
   };
 
-  // Handler untuk input
   const handleFocus = () => setIsFocused(true);
   const handleBlur = () => {
     setTimeout(() => {
@@ -73,15 +114,36 @@ export default function SearchPage() {
     }, 150);
   };
 
-  // Handler untuk mengklik suggestion
   const handleSuggestionClick = (searchTerm: string) => {
     setInputValue(searchTerm); 
     setIsFocused(false);
     router.push(`${pathname}?q=${searchTerm}`); 
   };
 
+  // TAMPILAN
   const showSuggestions = isFocused && !currentQuery;
-  const showResults = !!currentQuery; // Tanda (!!) mengubah string/null menjadi boolean
+  const showResults = !!currentQuery; 
+
+  const ResultItem = ({ content }: { content: SearchResult }) => (
+      <li key={content.id} className="item-search p-3 m-2 border rounded">
+          <h3 className="h6">{content.title}</h3> 
+          <p className="mb-1">
+              <small>{content.description}</small>
+          </p>
+          {/* Tampilkan info tambahan hanya untuk Post */}
+          {content.type === 'post' && (
+              <p className="mb-0 text-success">
+                  <small>by: {content.author} | in: {content.category}</small> 
+              </p>
+          )}
+          {/* Tampilkan info tambahan untuk Komunitas */}
+          {content.type === 'community' && (
+              <p className="mb-0 text-success">
+                  <small>Community: {content.category}</small> 
+              </p>
+          )}
+      </li>
+  );
 
   return (
     <div
@@ -90,7 +152,7 @@ export default function SearchPage() {
         maxWidth: '600px',
       }}
     >
-      {/*FORM PENCARIAN*/}
+      {/* FORM PENCARIAN */}
       <form 
         onSubmit={handleSubmit} 
         className="mb-3"
@@ -128,7 +190,7 @@ export default function SearchPage() {
         </div>
       </form>
 
-      {/*BAGIAN SUGGESTIONS */}
+      {/* BAGIAN SUGGESTIONS */}
       {showSuggestions && (
         <div
           className="suggestions border bg-white p-3 ms-4 me-auto" 
@@ -138,18 +200,24 @@ export default function SearchPage() {
           }}
         >
           <h3 className="h5">Popular Categories</h3>
-          <ul className="list-unstyled p-0"> 
-            {categories.map((category) => (
-              <li
-                key={category}
-                onClick={() => handleSuggestionClick(category)}
-                className="suggestion-item py-1" 
-                style={{ cursor: 'pointer', fontSize: '0.9rem' }} 
-              >
-                {category}
-              </li>
-            ))}
-          </ul>
+          {isLoadingCategories ? (
+            <p className="text-muted">Loading categories...</p>
+          ) : (
+            <ul className="list-unstyled p-0"> 
+              {/* MENGGUNAKAN DATA DARI API: categoriesList */}
+              {categoriesList.map((category) => (
+                <li
+                  key={category.id} 
+                  onClick={() => handleSuggestionClick(category.name)}
+                  className="suggestion-item py-1" 
+                  style={{ cursor: 'pointer', fontSize: '0.9rem' }} 
+                >
+                  {category.name}
+                </li>
+              ))}
+            </ul>
+          )}
+          
           <hr className="my-3" />
           <h3 className="h5">Popular Searches</h3>
           <ul className="list-unstyled p-0"> 
@@ -167,7 +235,7 @@ export default function SearchPage() {
         </div>
       )}
 
-      {/* HASIL PENCARIAN*/}
+      {/* HASIL PENCARIAN */}
       {showResults && (
         <div
           className="results border bg-white p-3 ms-4 me-auto" 
@@ -180,28 +248,37 @@ export default function SearchPage() {
             <p>Searching...</p>
           ) : (
             <>
-              <h2 className="h6"> 
+              <h2 className="h6 mb-3 border-bottom pb-2"> 
                 {`Results for: "${currentQuery}"`}
               </h2>
-              {results.length > 0 ? (
-                <ul className="list-unstyled p-0"> 
-                  {results.map((content) => (
-                    <li
-                      key={content.id}
-                      className="item-search p-3 m-2" 
-                    >
-                      <h3 className="h6">{content.title}</h3> 
-                      <p className="mb-1">
-                        <small>{content.description}</small>
-                      </p>
-                      <p className="mb-0">
-                        <small>by: {content.author}</small> 
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No results found.</p>
+
+              {/* TAMPILAN 1: KOMUNITAS */}
+              {groupedResults.communities.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="h6 text-dark fw-bold">Communities ({groupedResults.communities.length})</h3>
+                  <ul className="list-unstyled p-0"> 
+                    {groupedResults.communities.map((content) => (
+                      <ResultItem key={content.id} content={content} />
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* TAMPILAN 2: POSTINGAN */}
+              {groupedResults.posts.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="h6 text-dark fw-bold">Posts ({groupedResults.posts.length})</h3>
+                  <ul className="list-unstyled p-0"> 
+                    {groupedResults.posts.map((content) => (
+                      <ResultItem key={content.id} content={content} />
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* KONDISI TIDAK ADA HASIL SAMA SEKALI */}
+              {(groupedResults.communities.length === 0 && groupedResults.posts.length === 0) && (
+                <p>No results found matching your query.</p>
               )}
             </>
           )}

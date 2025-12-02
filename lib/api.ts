@@ -118,5 +118,13 @@ export const api = {
         body: JSON.stringify(data),
       });
     }
-  }
+  },
+  // FUNGSI UNTUK PENCARIAN
+  search: {
+      // Fungsi untuk mencari Komunitas dan Postingan berdasarkan query
+      // GET /api/search?q=keyword
+      getResults: async (query: string) => {
+          return fetcher(`/api/search?q=${encodeURIComponent(query)}`);
+      },
+  },
 };
