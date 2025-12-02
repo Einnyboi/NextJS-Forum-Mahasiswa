@@ -4,22 +4,18 @@ import Head from "next/head";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { Post } from '@/lib/types';
-import { useCurrentUserId } from '@/lib/hooks';
+import Navbar from '@/components/features/important/navbar';
+import Sidebar from '@/components/features/important/sidebar';
 
 export default function HistoryPage() {
     const [sortBy, setSortBy] = useState('newest');
     const [posts, setPosts] = useState<Post[]>([]); 
     const [isLoadingPosts, setIsLoadingPosts] = useState(false);
-    const { userId: currentUserId, loading: authLoading } = useCurrentUserId();
 
-    // const currentUserId = "user-1"; untuk coba"
+    const currentUserId = "user-1"; 
 
     // LOGIKA FETCHING DATA
     useEffect(() => {
-        if (authLoading) {
-            return;
-        }
-
         if (!currentUserId) {
             setPosts([]); 
             return;
@@ -40,9 +36,9 @@ export default function HistoryPage() {
         };
 
         loadPosts();
-    }, [currentUserId, authLoading]);
+    }, [currentUserId]);
     
-    // Tambahkan tipe untuk event
+    // Handler untuk perubahan sorting
     const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSortBy(event.target.value);
     };
@@ -65,17 +61,12 @@ export default function HistoryPage() {
                 // mengurutkan dari tanggal terbaru ke terlama
                 return sortableItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         }
-    }, [sortBy,posts]);
+    }, [sortBy, posts]);
 
-    // Conditional Rendering
-    
+    // Conditional Rendering Content
     let content;
 
-    if (authLoading) {
-        content = <p className="text-center text-muted py-5">Checking login status...</p>;
-    } else if (!currentUserId) {
-        content = <p className="text-center text-danger py-5">Please log in to view your post history.</p>;
-    } else if (isLoadingPosts) {
+    if (isLoadingPosts) {
         content = <p className="text-center text-muted py-5">Loading your post history...</p>;
     } else if (sortedActivities.length === 0) {
         content = <p className="text-center text-muted py-5">No activities found for this user.</p>;
@@ -113,40 +104,56 @@ export default function HistoryPage() {
     }
 
     return (
-        <main className="font-sans">
+        <div>
             <Head>
                 <title>History User</title>
             </Head>
 
-            <div className="min-vh-100 py-5" style={{ backgroundColor: 'var(--white-color)' }}>
-                <div className="container p-4">
-                    <div className="mb-4">
+            {/* NAVBAR DITEMPATKAN DI LUAR CONTAINER UTAMA */}
+            <Navbar />
+            
+            <div className="main-container hide-scrollbar">
+                <div className="main-dashboard-layout">
+                    
+                    {/* SIDEBAR DITEMPATKAN DI KIRI */}
+                    <Sidebar />
+                    
+                    {/* KONTEN UTAMA HISTORY DITEMPATKAN DI KANAN */}
+                    <div className="main-content px-5">
+                        <main className="font-sans">
+                            <div className="min-vh-100 py-5" style={{ backgroundColor: 'var(--white-color)' }}>
+                                <div className="container px-5 pb-3">
+                                    <div className="mb-4">
 
-                        {/* Header dan Filter */}
-                        <div className="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom border-secondary-subtle">
-                            <h2 className="h2 fw-bold" style={{ fontSize: '2.488rem', fontFamily: 'var(--h2-size)'}}>History</h2>
-                            <div className="d-flex align-items-center gap-2 mt-3">
-                                <label htmlFor="filter-select" className="fs-5" style={{color:'var(--secondary-color)'}}>Sort by:</label>
-                                <select
-                                    name="filter"
-                                    id="filter-select"
-                                    value={sortBy}
-                                    onChange={handleSortChange}
-                                    className="form-select form-select-sm border rounded-3 fs-6" style={{ width: 'auto' }}
-                                >
-                                    <option value="newest">Newest</option>
-                                    <option value="oldest">Oldest</option>
-                                    <option value="most-likes">Most Liked</option>
-                                    <option value="most-comments">Most Commented</option>
-                                </select>
+                                        {/* Header dan Filter */}
+                                        <div className="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom border-secondary-subtle">
+                                            <h2 className="h2 fw-bold" style={{ fontSize: '2.488rem', fontFamily: 'var(--h2-size)'}}>History</h2>
+                                            <div className="d-flex align-items-center gap-2 mt-3">
+                                                <label htmlFor="filter-select" className="fs-5" style={{color:'var(--secondary-color)'}}>Sort by:</label>
+                                                <select
+                                                    name="filter"
+                                                    id="filter-select"
+                                                    value={sortBy}
+                                                    onChange={handleSortChange}
+                                                    className="form-select form-select-sm border rounded-3 fs-6" style={{ width: 'auto' }}
+                                                >
+                                                    <option value="newest">Newest</option>
+                                                    <option value="oldest">Oldest</option>
+                                                    <option value="most-likes">Most Liked</option>
+                                                    <option value="most-comments">Most Commented</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Container Daftar Aktivitas User */}
+                                        {content}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-
-                        {/* Container Daftar Aktivitas User */}
-                        {content}
+                        </main>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
     );
 }

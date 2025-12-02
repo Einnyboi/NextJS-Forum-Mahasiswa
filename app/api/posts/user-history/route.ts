@@ -11,8 +11,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        // Menggunakan fungsi getByAuthor yang sudah ada di lib/db.ts
-        const posts: Post[] = await dbService.posts.getByAuthor(userId);
+        const posts: Post[] = await dbService.posts.getUserPosts(userId);
         
         return NextResponse.json(posts); 
 
