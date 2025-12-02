@@ -3,17 +3,18 @@ import {
   getDocs, 
   deleteDoc, 
   doc, 
-  addDoc,
-  query,
-  orderBy,
-  where,
-  updateDoc,
-  arrayUnion,
+  getDoc, 
+  addDoc, 
+  query, 
+  orderBy, 
+  where, 
+  updateDoc, 
+  arrayUnion, 
   arrayRemove
 } from "firebase/firestore";
-import { db } from "./firebase"; // Pastikan path ini benar
+import { db } from "./firebase"; 
 
-// --- DEFINISI TIPE DATA (TYPES) ---
+// --- DEFINISI TIPE DATA ---
 export interface PostData {
   id: string;
   title: string;
@@ -22,6 +23,7 @@ export interface PostData {
   category: 'community' | 'event';
   date: string;
   createdAt?: any;
+  isVisible?: boolean; // <-- INI YANG DICARI HALAMAN ADMIN
 }
 
 export interface CommunityData {
@@ -29,156 +31,118 @@ export interface CommunityData {
   name: string;
   description: string;
   imageUrl: string;
-  members?: string[]; // Array of User IDs
+  members?: string[]; 
+}
+
+export interface CommentData {
+  id: string;
+  postId: string;
+  content: string;
+  author: string;
+  createdAt: any;
 }
 
 // --- API OBJECT ---
 export const api = {
 
-  // 1. BAGIAN ADMIN
+  // 1. ADMIN
   admin: {
     getAllUsers: async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        return [];
-      }
+        const snapshot = await getDocs(collection(db, "users"));
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      } catch (e) { return []; }
     },
-    deleteUser: async (userId: string) => {
-        // Note: Menghapus user dari Auth membutuhkan Admin SDK (Backend).
-        // Di sini kita hanya bisa menghapus data profile mereka di Firestore.
-        try {
-            await deleteDoc(doc(db, "users", userId));
-            return true;
-        } catch (error) {
-            console.error("Error deleting user data:", error);
-            return false;
-        }
+    deleteUser: async (id: string) => {
+        try { await deleteDoc(doc(db, "users", id)); return true; } 
+        catch (e) { return false; }
     }
   },
 
-  // 2. BAGIAN POSTS
+  // 2. POSTS
   posts: {
-    // Ambil semua post
     getAll: async (): Promise<PostData[]> => {
       try {
-        const postsRef = collection(db, "posts");
-        // Kita gunakan query tanpa orderBy dulu untuk menghindari error index Firestore
-        const q = query(postsRef); 
-        const querySnapshot = await getDocs(q);
-        
-        return querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as PostData[];
-      } catch (error) {
-        console.error("Error getting posts:", error);
-        return [];
-      }
+        const q = query(collection(db, "posts")); 
+        const snap = await getDocs(q);
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PostData[];
+      } catch (e) { return []; }
     },
 
-    // Ambil post by Community (Filter)
+    getById: async (postId: string): Promise<PostData | null> => {
+      try {
+        const docRef = doc(db, "posts", postId);
+        const docSnap = await getDoc(docRef);
+        return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as PostData : null;
+      } catch (e) { return null; }
+    },
+
     getByCommunity: async (communityId: string) => {
-       // Logic filter Firestore placeholder
-       return [];
+      try {
+        const q = query(
+            collection(db, "posts"), 
+            where("communityId", "==", communityId),
+            where("isVisible", "==", true)
+        );
+        const snap = await getDocs(q);
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PostData[];
+      } catch (e) { return []; }
     },
 
-    // Buat Post Baru
     create: async (data: any) => {
       try {
-        await addDoc(collection(db, "posts"), {
-            ...data,
-            createdAt: new Date()
-        });
+        await addDoc(collection(db, "posts"), { ...data, isVisible: true, createdAt: new Date() });
         return true;
-      } catch (error) {
-        console.error("Error creating post:", error);
-        return false;
-      }
+      } catch (e) { return false; }
     },
 
-    // Hapus Post (Untuk Admin & User)
-    delete: async (postId: string) => {
-      try {
-        await deleteDoc(doc(db, "posts", postId));
-        return true;
-      } catch (error) {
-        console.error("Error deleting post:", error);
-        return false;
-      }
+    delete: async (id: string) => {
+      try { await deleteDoc(doc(db, "posts", id)); return true; } 
+      catch (e) { return false; }
     },
 
-    // Like Post
-    like: async (postId: string) => {
-      // Placeholder logic
-      return;
-    }
+    // --- FUNGSI INI YANG MEMBUAT ADMIN ERROR JIKA HILANG ---
+    toggleVisibility: async (id: string, status: boolean) => {
+        try { await updateDoc(doc(db, "posts", id), { isVisible: !status }); return true; } 
+        catch (e) { return false; }
+    },
+    // -------------------------------------------------------
+
+    like: async (id: string) => { return; }
   },
   
-  // 3. BAGIAN COMMUNITIES (Diubah ke Firebase Langsung)
+  // 3. COMMUNITIES
   communities: {
-    // Create Community
-    create: async (data: {name: string; description: string; imageUrl: string}) => {
-      try {
-        await addDoc(collection(db, "communities"), {
-            ...data,
-            members: [],
-            createdAt: new Date()
-        });
-        return true;
-      } catch (error) {
-        console.error("Error creating community:", error);
-        return false;
-      }
+    create: async (data: any) => {
+      try { await addDoc(collection(db, "communities"), { ...data, members: [], createdAt: new Date() }); return true; } 
+      catch (e) { return false; }
     },
-
-    // Get All Communities
     getAll: async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "communities"));
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      } catch (error) {
-        console.error("Error fetching communities:", error);
-        return [];
-      }
+        const snap = await getDocs(collection(db, "communities"));
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      } catch (e) { return []; }
     },
-
-    // Join Community
-    join: async (userId: string, communityId: string) => {
-      try {
-        const commRef = doc(db, "communities", communityId);
-        // Tambahkan userId ke array 'members'
-        await updateDoc(commRef, {
-            members: arrayUnion(userId)
-        });
-        return true;
-      } catch (error) {
-        console.error("Error joining community:", error);
-        return false;
-      }
+    join: async (u: string, c: string) => {
+      try { await updateDoc(doc(db, "communities", c), { members: arrayUnion(u) }); return true; } catch (e) { return false; }
     },
-
-    // Leave Community
-    leave: async (userId: string, communityId: string) => {
-      try {
-        const commRef = doc(db, "communities", communityId);
-        // Hapus userId dari array 'members'
-        await updateDoc(commRef, {
-            members: arrayRemove(userId)
-        });
-        return true;
-      } catch (error) {
-        console.error("Error leaving community:", error);
-        return false;
-      }
+    leave: async (u: string, c: string) => {
+      try { await updateDoc(doc(db, "communities", c), { members: arrayRemove(u) }); return true; } catch (e) { return false; }
     },
   },
 
-  // 4. BAGIAN COMMENTS
+  // 4. COMMENTS
   comments: {
-    getByPost: async (postId: string) => { return []; },
-    create: async (data: any) => { return; }
+    getByPost: async (postId: string) => {
+      try {
+        const q = query(collection(db, "comments"), where("postId", "==", postId));
+        const snap = await getDocs(q);
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as CommentData[];
+      } catch (e) { return []; }
+    },
+    create: async (data: any) => {
+      try { await addDoc(collection(db, "comments"), { ...data, createdAt: new Date() }); return true; } 
+      catch (e) { return false; }
+    }
   }
 };

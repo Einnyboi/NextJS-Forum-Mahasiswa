@@ -206,12 +206,14 @@ const FeedContent = ({ view, user }: { view: string, user: any }) => {
   );
 };
 
-// --- HALAMAN UTAMA ---
+// --- MAIN HOME ---
 export default function Home() {
     const [currentView, setCurrentView] = useState('home');
     const [user, setUser] = useState<any>(null);
+    // Kita tetap butuh state ini, tapi tidak dipakai untuk memblokir layar
+    const [authLoading, setAuthLoading] = useState(true); 
 
-    // Cek Login
+    // Cek Login Firebase
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
@@ -219,7 +221,12 @@ export default function Home() {
                     const docRef = doc(db, "users", firebaseUser.uid);
                     const docSnap = await getDoc(docRef);
                     let role = 'user';
-                    if (docSnap.exists()) role = docSnap.data().role || 'user';
+                    
+                    // --- LOGIKA PEMBEDA ADMIN VS USER ---
+                    if (docSnap.exists()) {
+                        role = docSnap.data().role || 'user';
+                    }
+                    // ------------------------------------
 
                     setUser({
                         uid: firebaseUser.uid,
@@ -227,18 +234,29 @@ export default function Home() {
                         role: role
                     });
                 } catch (error) {
-                    console.error("Error fetching role:", error);
+                    console.error("Error:", error);
                 }
             } else {
                 setUser(null);
             }
+            setAuthLoading(false); // Data selesai dimuat
         });
         return () => unsubscribe();
     }, []);
 
+    // --- BAGIAN YANG DIHAPUS ---
+    // if (authLoading) { return <div...>Loading...</div> }
+    // ---------------------------
+
     const renderMainContent = () => {
         if (currentView === 'signup') return <SignupForm />;
         if (currentView === 'login') return <LoginForm />;
+        
+        // Opsional: Tampilkan loading kecil hanya di bagian feed, bukan seluruh layar
+        if (authLoading) {
+             return <div className="p-5 text-center text-muted">Sedang memuat data akun...</div>;
+        }
+
         return <FeedContent view={currentView} user={user} />;
     };
 
@@ -247,16 +265,12 @@ export default function Home() {
           <Navbar 
             onNavChange={setCurrentView} 
             isLoggedIn={!!user} 
-            userRole={user?.role} 
+            userRole={user?.role} // Ini kunci pembeda tampilan Admin
           />
           
           <div className="main-container">
               <div className="main-dashboard-layout">
-                {/* Kirim props ke Sidebar */}
-                <Sidebar 
-                    activeView={currentView} 
-                    onMenuClick={setCurrentView} 
-                />
+                <Sidebar activeView={currentView} onMenuClick={setCurrentView} />
                 
                 <div className="main-content">
                     {renderMainContent()}
