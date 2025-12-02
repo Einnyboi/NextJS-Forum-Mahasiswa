@@ -51,3 +51,14 @@ export type Post = {
   likeCount: number;
   commentCount: number;
 };
+
+// Tipe data untuk Hasil Pencarian Gabungan (Community dan Post)
+export type SearchResult = {
+  id: string; 
+  type: 'community' | 'post' | 'user' | 'event'; // untuk frontend grouping
+  title: string; 
+  description: string;
+  category: string;
+  author?: string; // Hanya ada untuk Post dan User
+  imageUrl?: string; 
+};

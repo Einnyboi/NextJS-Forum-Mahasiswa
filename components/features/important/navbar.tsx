@@ -82,7 +82,7 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                             <User size={18} className="me-2" />
                             Profile
                         </NavDropdown.Item>
-                        <NavDropdown.Item href="history.tsx">
+                        <NavDropdown.Item href="/user-history">
                             <History size={18} className="me-2" />
                             History
                         </NavDropdown.Item>
