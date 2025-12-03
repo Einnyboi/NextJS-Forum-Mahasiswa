@@ -112,6 +112,41 @@ a {
     font-weight: 600;
     box-shadow: 0 4px 10px rgba(194, 1, 20, 0.2);
 }
+/* efek untuk card aktivitas user history dan hasil search */
+.activity-post-card ,.item-search{
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: var(--primary-color) !important;
+    border-radius: 1rem !important; 
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+.activity-post-card:hover, .item-search:hover {
+    background-color: #b8c5c4 !important;
+    transform: translateY(-0.1rem); 
+    box-shadow: 0 0.5rem 1rem rgba(12, 18, 12, 0.15) !important; 
+}
+/* efek untuk judul post pada user history */
+.post-title a {
+    color: var(--secondary-color); 
+    text-decoration: none;
+    transition: color 0.2s ease; 
+}
+.post-title a:hover {
+    text-decoration: underline; 
+}
+/* untuk search */
+.suggestion-item {
+    text-decoration: none; 
+}
+.suggestion-item:hover {
+    text-decoration: underline; 
+    font-weight: bold;
+}
+.search-input-no-focus:focus {
+  box-shadow: none !important;
+  outline: none !important;
+  border-color: #ced4da !important; 
+}
 
 .sidebar-link.active svg {
     stroke-width: 2.5px;

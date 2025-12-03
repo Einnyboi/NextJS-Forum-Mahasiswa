@@ -95,6 +95,10 @@ export const api = {
         return true;
       } catch (e) { return false; }
     },
+    // buat history
+    getUserPosts: async (userId: string) => {
+        return fetcher(`/api/posts/user-history?userId=${userId}`);
+    },
 
     delete: async (id: string) => {
       try { await deleteDoc(doc(db, "posts", id)); return true; } 
@@ -144,5 +148,13 @@ export const api = {
       try { await addDoc(collection(db, "comments"), { ...data, createdAt: new Date() }); return true; } 
       catch (e) { return false; }
     }
-  }
+  },
+  // FUNGSI UNTUK PENCARIAN
+  search: {
+      // Fungsi untuk mencari Komunitas dan Postingan berdasarkan query
+      // GET /api/search?q=keyword
+      getResults: async (query: string) => {
+          return fetcher(`/api/search?q=${encodeURIComponent(query)}`);
+      },
+  },
 };
