@@ -2,41 +2,39 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from "@/components/features/important/navbar";
-import Sidebar from "@/components/features/important/sidebar";
+import Navbar from "@/components/layout/navbar";
+import Sidebar from "@/components/layout/sidebar";
 import CommunityCard from "@/components/features/community/CommunityCard";
 import CreateCommunityForm from "@/components/features/community/CreateCommunityForm";
-import { Community } from '@/lib/types';
-import { Container, Row, Col, Button } from 'react-bootstrap';
+import { api, CommunityData } from '@/lib/api';
 import { Plus } from 'lucide-react';
 
 const CommunityPage = () => {
     const router = useRouter();
-    const [communities, setCommunities] = useState<Community[]>([]);
+    const [communities, setCommunities] = useState<CommunityData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [currentUserId, setCurrentUserId] = useState<string>('');
+    const [user, setUser] = useState<any>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
 
     useEffect(() => {
         // Get current user from localStorage
-        const userStr = localStorage.getItem('currentUser');
-        if (!userStr) {
-            router.push('/login');
-            return;
+        const sessionData = localStorage.getItem('userSession');
+        if (sessionData) {
+            const session = JSON.parse(sessionData);
+            if (session.isLoggedIn) {
+                setUser({
+                    email: session.email,
+                    role: session.role,
+                    fullName: session.fullName
+                });
+            }
         }
-
-        const user = JSON.parse(userStr);
-        setCurrentUserId(user.id || user.uid || user.userId);
 
         // Fetch all communities
         const fetchCommunities = async () => {
             try {
-                const response = await fetch('/api/communities');
-                if (response.ok) {
-                    const data = await response.json();
-                    // API returns array directly, not { communities: [] }
-                    setCommunities(Array.isArray(data) ? data : []);
-                }
+                const data = await api.communities.getAll();
+                setCommunities(data);
             } catch (error) {
                 console.error('Error fetching communities:', error);
             } finally {
@@ -45,78 +43,70 @@ const CommunityPage = () => {
         };
 
         fetchCommunities();
-    }, [router]);
+    }, []);
 
-    if (isLoading) {
-        return (
-            <>
-                <Navbar />
-                <div className="main-dashboard-layout">
-                    <div className="left-sidebar">
-                        <Sidebar />
-                    </div>
-                    <div className="main-content">
-                        <div className="main-container">
-                            <p>Loading communities...</p>
-                        </div>
-                    </div>
-                </div>
-            </>
-        );
-    }
+    const handleCreateSuccess = () => {
+        // Refresh communities list
+        api.communities.getAll().then(data => setCommunities(data));
+    };
 
     return (
-        <>
-            <Navbar />
+        <div>
+            <Navbar onNavChange={(view) => {
+                if (view === 'home') router.push('/');
+                else if (view === 'community') router.push('/community');
+                // Add other routes if needed
+            }} isLoggedIn={!!user} userRole={user?.role} />
+
             <div className="main-dashboard-layout">
-                <div className="left-sidebar">
-                    <Sidebar />
-                </div>
+                <Sidebar activeView="community" onMenuClick={(view) => {
+                    if (view === 'home') router.push('/');
+                    else if (view === 'community') router.push('/community');
+                }} />
+
                 <div className="main-content">
-                    <div className="main-container">
-                        <div className="d-flex justify-content-between align-items-center mb-4">
-                            <h1 className="mb-0">Discover Communities</h1>
-                            <Button 
-                                variant="primary" 
-                                onClick={() => setShowCreateModal(true)}
-                                className="d-flex align-items-center gap-2"
-                            >
-                                <Plus size={20} />
-                                Create Community
-                            </Button>
+                    <div className="d-flex justify-content-between align-items-center mb-4 welcome-banner">
+                        <div>
+                            <h1 className="welcome-title">Temukan Komunitas</h1>
+                            <p className="welcome-text">Bergabunglah dengan komunitas yang sesuai minatmu.</p>
                         </div>
-                        
-                        {communities.length === 0 ? (
-                            <p className="text-muted">No communities available yet.</p>
-                        ) : (
-                            <Container fluid>
-                                <Row xs={1} md={2} lg={3} className="g-4">
-                                    {communities.map((community) => (
-                                        <Col key={community.id}>
-                                            <CommunityCard 
-                                                community={community} 
-                                                currentUserId={currentUserId}
-                                            />
-                                        </Col>
-                                    ))}
-                                </Row>
-                            </Container>
+
+                        {user && (
+                            <button
+                                className="btn-create-test"
+                                onClick={() => setShowCreateModal(true)}
+                            >
+                                + Buat Komunitas
+                            </button>
                         )}
                     </div>
+
+                    {isLoading ? (
+                        <p className="state-message">Memuat komunitas...</p>
+                    ) : communities.length === 0 ? (
+                        <div className="state-message">
+                            <p>Belum ada komunitas.</p>
+                        </div>
+                    ) : (
+                        <div className="d-flex flex-column gap-3">
+                            {communities.map((community) => (
+                                <CommunityCard
+                                    key={community.id}
+                                    community={community}
+                                    isJoined={false}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
-            
-            <CreateCommunityForm 
+
+            <CreateCommunityForm
                 show={showCreateModal}
                 onHide={() => setShowCreateModal(false)}
-                onSuccess={() => {
-                    // Refresh communities list
-                    fetch('/api/communities')
-                        .then(res => res.json())
-                        .then(data => setCommunities(Array.isArray(data) ? data : []));
-                }}
+                onSuccess={handleCreateSuccess}
             />
-        </>
+        </div>
     );
 };
 

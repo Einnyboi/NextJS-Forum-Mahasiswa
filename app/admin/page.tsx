@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-// Kita tidak butuh Link atau usePathname lagi di sini karena Navigasi sudah di Layout
 
 export default function AdminDashboardPage() {
   return (
@@ -23,10 +22,12 @@ export default function AdminDashboardPage() {
                 </p>
              </div>
              <div className="col-md-4 text-end">
-                {/* Hiasan atau tombol aksi cepat */}
-                <button className="btn btn-primary btn-sm rounded-pill px-4">
+                {/* --- UPDATE TOMBOL DI SINI --- */}
+                {/* Menggunakan btn-dark (Hitam Solid) atau btn-outline-dark agar senada */}
+                <button className="btn btn-dark btn-sm rounded-pill px-4 shadow-sm">
                   Lihat Laporan
                 </button>
+                {/* ----------------------------- */}
              </div>
           </div>
         </div>
@@ -44,8 +45,8 @@ export default function AdminDashboardPage() {
                     <h4 className="card-title text-muted small text-uppercase fw-bold mb-1">Total Pengguna</h4>
                     <p className="card-text h1 fw-bold text-dark mb-0">104</p>
                  </div>
-                 <div className="bg-light rounded-circle p-2 text-primary">
-                    {/* Icon placeholder (User) */}
+                 <div className="bg-light rounded-circle p-3 text-dark">
+                    {/* Icon User */}
                     <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                  </div>
               </div>
@@ -65,8 +66,8 @@ export default function AdminDashboardPage() {
                     <h4 className="card-title text-muted small text-uppercase fw-bold mb-1">Total Postingan</h4>
                     <p className="card-text h1 fw-bold text-dark mb-0">42</p>
                  </div>
-                 <div className="bg-light rounded-circle p-2 text-success">
-                    {/* Icon placeholder (File) */}
+                 <div className="bg-light rounded-circle p-3 text-dark">
+                    {/* Icon File */}
                     <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                  </div>
               </div>
@@ -86,8 +87,8 @@ export default function AdminDashboardPage() {
                     <h4 className="card-title text-muted small text-uppercase fw-bold mb-1">Event Menunggu</h4>
                     <p className="card-text h1 fw-bold text-dark mb-0">3</p>
                  </div>
-                 <div className="bg-light rounded-circle p-2 text-warning">
-                    {/* Icon placeholder (Calendar) */}
+                 <div className="bg-light rounded-circle p-3 text-danger">
+                    {/* Icon Calendar */}
                     <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                  </div>
               </div>
