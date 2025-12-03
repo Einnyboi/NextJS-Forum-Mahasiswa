@@ -19,6 +19,9 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
     // router fallback when no onNavChange handler is provided
     const router = require('next/navigation').useRouter?.() ?? null;
 
+    // State untuk input pencarian
+    const [searchQuery, setSearchQuery] = useState('');
+
     const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
         e.preventDefault();
@@ -42,6 +45,14 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
         setLoggedIn(false);
         // redirect to home
         if (router) router.push('/');
+    };
+    type SearchInputEvent = MouseEvent<FormControlElement> | FocusEvent<FormControlElement>;
+    const handleSearchAction = (e: SearchInputEvent) => {
+        // Pastikan kita menggunakan router dan belum berada di halaman '/search'
+        if (router && !pathname.startsWith('/search')) {
+            // Navigasi ke halaman /search TANPA query (?q=)
+            router.push('/search');
+        }
     };
 
     const [loggedIn, setLoggedIn] = useState<boolean>(Boolean(isLoggedIn));
@@ -127,14 +138,31 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                         Foma
                     </Navbar.Brand>
                 
-                    <Form className="d-flex search">
+                    <Form className="d-flex search"
+                        onSubmit={(e) => { 
+                            e.preventDefault(); 
+                            // Jika pengguna mengisi teks dan menekan Enter, bawa query-nya
+                            const trimmedQuery = searchQuery.trim();
+                            if (router) {
+                                if (trimmedQuery !== '') {
+                                    router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
+                                } else {
+                                    router.push('/search');
+                                }
+                            }
+                        }}
+                    >
                         <Form.Control
                             type="search"
                             placeholder="Searching for something?"
                             className="me-0"
                             aria-label="Search"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={handleSearchAction}
+                            onClick={handleSearchAction}
                         />
-                        <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
+                        <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }} type="submit">
                             <Search size={25} />
                         </Button>
                     </Form>
