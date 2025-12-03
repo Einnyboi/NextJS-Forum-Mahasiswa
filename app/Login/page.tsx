@@ -1,9 +1,6 @@
 'use client';
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore"; // Import setDoc untuk auto-create
-import { auth, db } from "@/lib/firebase"; 
 
 const Login: React.FC = () => {
     const router = useRouter();
@@ -12,72 +9,54 @@ const Login: React.FC = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // --- LOGIKA UTAMA (Satu Fungsi untuk Semua) ---
+    // Hardcoded credentials
+    const ADMIN_EMAIL = 'admin@foma.com';
+    const ADMIN_PASSWORD = 'admin123';
+
     const handleLogin = async (e: React.FormEvent, type: 'user' | 'admin') => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
         try {
-            // 1. Login ke Firebase Auth
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
+            // Simulasi delay untuk UX
+            await new Promise(resolve => setTimeout(resolve, 500));
 
-            // 2. Cek apakah Data User ada di Firestore?
-            const userDocRef = doc(db, "users", user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-
-            let role = 'user';
-
-            if (!userDocSnap.exists()) {
-                // --- BAGIAN AJAIB: AUTO-FIX ADMIN ---
-                // Jika emailnya 'admin@foma.com' tapi datanya belum ada di database,
-                // kita buatkan OTOMATIS sekarang juga sebagai ADMIN.
-                if (email === 'admin@foma.com') {
-                    await setDoc(userDocRef, {
-                        email: user.email,
-                        role: 'admin', // Paksa jadi admin
-                        fullName: 'Super Admin',
-                        createdAt: new Date()
-                    });
-                    role = 'admin';
-                    console.log("✅ Akun Admin berhasil dibuat otomatis di Database!");
-                } else {
-                    // Jika user biasa baru login pertama kali
-                    await setDoc(userDocRef, {
-                        email: user.email,
-                        role: 'user',
-                        fullName: 'User Baru',
-                        createdAt: new Date()
-                    });
-                }
-            } else {
-                // Jika data sudah ada, baca role-nya
-                role = userDocSnap.data().role;
-            }
-
-            // 3. Pengecekan Pintu Masuk
+            // Cek kredensial
             if (type === 'admin') {
-                // Tombol "Login as Admin" ditekan
-                if (role === 'admin') {
-                    router.push('/admin'); // Sukses masuk admin
+                // Login sebagai admin
+                if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+                    // Simpan session ke localStorage
+                    localStorage.setItem('userSession', JSON.stringify({
+                        email: email,
+                        role: 'admin',
+                        isLoggedIn: true,
+                        fullName: 'Super Admin'
+                    }));
+                    router.push('/admin');
                 } else {
-                    await signOut(auth); // Tendang keluar
-                    setError("Gagal! Akun ini bukan Admin.");
+                    setError('Email atau password admin salah!');
                 }
             } else {
-                // Tombol "Login" (User) ditekan
-                if (role === 'admin') {
-                    await signOut(auth); // Tendang keluar
-                    setError("Anda Admin! Gunakan tombol 'Login as Admin' di bawah.");
+                // Login sebagai user biasa
+                if (email === ADMIN_EMAIL) {
+                    setError('Anda Admin! Gunakan tombol "Login as Admin" di bawah.');
+                } else if (email && password) {
+                    // User biasa bisa login dengan email dan password apapun
+                    localStorage.setItem('userSession', JSON.stringify({
+                        email: email,
+                        role: 'user',
+                        isLoggedIn: true,
+                        fullName: 'User'
+                    }));
+                    router.push('/');
                 } else {
-                    router.push('/'); // Sukses masuk home
+                    setError('Email dan password harus diisi!');
                 }
             }
-
         } catch (err: any) {
             console.error(err);
-            setError("Email atau password salah.");
+            setError('Terjadi kesalahan saat login.');
         } finally {
             setLoading(false);
         }
@@ -109,11 +88,22 @@ const Login: React.FC = () => {
                     margin-top: 1rem; cursor: pointer;
                 }
                 .error { color: var(--error-red); font-size: 0.9rem; text-align: center; margin-bottom: 1rem; display: block; }
+                .info-box {
+                    background: #e3f2fd; border-left: 4px solid #2196f3; padding: 1rem;
+                    margin-bottom: 1.5rem; border-radius: 4px; font-size: 0.9rem;
+                }
             `}</style>
 
             <div className="auth-container">
-                <h2 style={{fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem'}}>Welcome Back</h2>
-                <p style={{color: '#666', marginBottom: '2rem'}}>Log in to continue</p>
+                <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Welcome Back</h2>
+                <p style={{ color: '#666', marginBottom: '1rem' }}>Log in to continue</p>
+
+                {/* Info Box */}
+                <div className="info-box">
+                    <strong>Demo Credentials:</strong><br />
+                    Admin: admin@foma.com / admin123<br />
+                    User: email apapun / password apapun
+                </div>
 
                 {error && <div className="error">{error}</div>}
 
@@ -128,17 +118,17 @@ const Login: React.FC = () => {
                     </div>
 
                     {/* TOMBOL USER */}
-                    <button 
-                        className="loginBtn" 
-                        onClick={(e) => handleLogin(e, 'user')} 
+                    <button
+                        className="loginBtn"
+                        onClick={(e) => handleLogin(e, 'user')}
                         disabled={loading}
                     >
                         {loading ? 'Processing...' : 'Login'}
                     </button>
 
                     {/* TOMBOL ADMIN */}
-                    <button 
-                        className="adminBtn" 
+                    <button
+                        className="adminBtn"
                         onClick={(e) => handleLogin(e, 'admin')}
                         disabled={loading}
                     >

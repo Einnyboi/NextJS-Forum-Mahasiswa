@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PostData } from '@/lib/api';
+import { PostData, api } from '@/lib/api';
+import { ChevronUp, ChevronDown, MessageSquare, Share2 } from 'lucide-react';
 
 // Helper: Warna avatar acak berdasarkan huruf depan
 function getAvatarColor(letter: string) {
@@ -13,137 +14,190 @@ function getAvatarColor(letter: string) {
 
 interface ThreadCardProps {
     thread: PostData;
-    clickable?: boolean; // Opsional: Default true (bisa diklik)
+    clickable?: boolean;
 }
 
 export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
     const router = useRouter();
-    
+
     // State Lokal untuk interaksi visual
-    const [isLiked, setIsLiked] = useState(false);
-    const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 50)); // Simulasi angka like
+    const [upvotes, setUpvotes] = useState(thread.upvotes || 0);
+    const [downvotes, setDownvotes] = useState(thread.downvotes || 0);
+    const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+
+    // Get current user
+    useEffect(() => {
+        const sessionData = localStorage.getItem('userSession');
+        if (sessionData) {
+            const session = JSON.parse(sessionData);
+            if (session.isLoggedIn) {
+                setUserEmail(session.email);
+                // Check if user has voted
+                if (thread.votedBy && thread.votedBy[session.email]) {
+                    setUserVote(thread.votedBy[session.email]);
+                }
+            }
+        }
+    }, [thread]);
 
     // Ambil inisial nama untuk avatar
     const initial = thread.author ? thread.author.charAt(0).toUpperCase() : '?';
+    const voteScore = upvotes - downvotes;
 
     // 1. Fungsi Navigasi ke Detail Page
     const handleCardClick = (e: React.MouseEvent) => {
-        // Jika mode clickable aktif, pindah ke halaman detail
         if (clickable) {
             router.push(`/thread/${thread.id}`);
         }
     };
 
-    // 2. Fungsi Like (Cegah Navigasi)
-    const handleLike = (e: React.MouseEvent) => {
-        e.stopPropagation(); // PENTING: Mencegah klik tembus ke kartu
-        setIsLiked(!isLiked);
-        setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+    // 2. Fungsi Vote
+    const handleUpvote = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!userEmail) {
+            alert('Please login to vote');
+            return;
+        }
+
+        try {
+            const success = await api.posts.upvote(thread.id, userEmail);
+            if (success) {
+                if (userVote === 'up') {
+                    setUpvotes(upvotes - 1);
+                    setUserVote(null);
+                } else if (userVote === 'down') {
+                    setDownvotes(downvotes - 1);
+                    setUpvotes(upvotes + 1);
+                    setUserVote('up');
+                } else {
+                    setUpvotes(upvotes + 1);
+                    setUserVote('up');
+                }
+            }
+        } catch (error) {
+            console.error('Upvote failed:', error);
+        }
     };
 
-    // 3. Fungsi Komentar (Cegah Navigasi)
-    const handleCommentClick = (e: React.MouseEvent) => {
-        e.stopPropagation(); // PENTING: Mencegah klik tembus ke kartu
-        // Jika di halaman list, bisa diarahkan ke detail dan langsung scroll ke komen
-        if (clickable) {
-            router.push(`/thread/${thread.id}`);
+    const handleDownvote = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!userEmail) {
+            alert('Please login to vote');
+            return;
+        }
+
+        try {
+            const success = await api.posts.downvote(thread.id, userEmail);
+            if (success) {
+                if (userVote === 'down') {
+                    setDownvotes(downvotes - 1);
+                    setUserVote(null);
+                } else if (userVote === 'up') {
+                    setUpvotes(upvotes - 1);
+                    setDownvotes(downvotes + 1);
+                    setUserVote('down');
+                } else {
+                    setDownvotes(downvotes + 1);
+                    setUserVote('down');
+                }
+            }
+        } catch (error) {
+            console.error('Downvote failed:', error);
         }
     };
 
     return (
-        <div 
-            className="thread-card" 
+        <div
+            className="thread-card d-flex flex-column"
             onClick={handleCardClick}
-            style={{ 
+            style={{
                 cursor: clickable ? 'pointer' : 'default',
-                transition: 'background-color 0.2s' 
+                transition: 'background-color 0.2s',
+                padding: '16px' // Standard padding
             }}
         >
-            {/* --- HEADER: AVATAR & INFO --- */}
-            <div className="thread-header">
-                <div className="author-info">
-                    <div 
-                        className="author-avatar" 
-                        style={{ backgroundColor: getAvatarColor(initial) }}
-                    >
-                        {initial}
-                    </div>
-                    <div>
-                        <div className="author-name">{thread.author}</div>
-                        <div className="post-date" style={{fontSize: '0.75rem', color: '#999'}}>
-                            {thread.date || 'Baru saja'}
+            {/* --- CONTENT --- */}
+            <div className="flex-grow-1 mb-3">
+                {/* Header */}
+                <div className="thread-header mb-2">
+                    <div className="author-info">
+                        <div
+                            className="author-avatar"
+                            style={{ backgroundColor: getAvatarColor(initial), width: '24px', height: '24px', fontSize: '0.8rem' }}
+                        >
+                            {initial}
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <span className="author-name small fw-bold">{thread.author}</span>
+                            <span className="text-muted small">•</span>
+                            <span className="post-date small text-muted">{thread.date || 'Baru saja'}</span>
                         </div>
                     </div>
+
+                    <span className={`category-badge ${thread.category} ms-auto`} style={{ fontSize: '0.7rem' }}>
+                        {thread.category}
+                    </span>
                 </div>
-                
-                {/* Badge Kategori */}
-                <span className={`category-badge ${thread.category}`} style={{fontSize: '0.7rem'}}>
-                    {thread.category}
-                </span>
+
+                {/* Body */}
+                <div className="thread-body mb-3">
+                    <h3 className="thread-title h5 fw-bold mb-2">{thread.title}</h3>
+
+                    <p className="thread-content text-muted mb-3">
+                        {clickable && (thread.content || "").length > 200
+                            ? `${(thread.content || "").substring(0, 200)}...`
+                            : (thread.content || "")
+                        }
+                    </p>
+
+                    {/* Image Display */}
+                    {thread.imageUrl && (
+                        <div className="mb-3">
+                            <img
+                                src={thread.imageUrl}
+                                alt="Post content"
+                                className="img-fluid rounded"
+                                style={{ maxHeight: '400px', objectFit: 'cover' }}
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* --- BODY: JUDUL & KONTEN --- */}
-            <div className="thread-body my-3" style={{padding: '0 1rem'}}>
-                <h3 className="thread-title">{thread.title}</h3>
-                
-                <p className="thread-content">
-                    {/* Jika di list (clickable), potong teks yang terlalu panjang */}
-                    {clickable && thread.content.length > 150 
-                        ? `${thread.content.substring(0, 150)}...` 
-                        : thread.content
-                    }
-                </p>
-            </div>
+            {/* --- FOOTER ACTIONS (VOTING & COMMENTS) --- */}
+            <div className="thread-footer d-flex gap-4 text-muted small fw-bold align-items-center">
 
-            {/* --- FOOTER: TOMBOL AKSI --- */}
-            <div className="thread-footer">
-                
-                {/* Tombol Like */}
-                <div 
-                    style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '6px', 
-                        cursor: 'pointer',
-                        color: isLiked ? '#e0245e' : '#657786' // Merah jika dilike
-                    }}
-                    onClick={handleLike}
-                >
-                    <span style={{fontSize: '1.2rem'}}>{isLiked ? '❤️' : '🤍'}</span>
-                    <span style={{fontSize: '0.9rem', fontWeight: 600}}>{likeCount}</span>
+                {/* Voting Section (Moved to Footer) */}
+                <div className="d-flex align-items-center gap-1 bg-light rounded-pill px-2 py-1 border">
+                    <button
+                        onClick={handleUpvote}
+                        className={`btn btn-sm p-0 ${userVote === 'up' ? 'text-success' : 'text-muted'}`}
+                        style={{ border: 'none', background: 'none', lineHeight: 1 }}
+                    >
+                        <ChevronUp size={20} />
+                    </button>
+                    <span className="mx-1" style={{ minWidth: '15px', textAlign: 'center' }}>{voteScore}</span>
+                    <button
+                        onClick={handleDownvote}
+                        className={`btn btn-sm p-0 ${userVote === 'down' ? 'text-danger' : 'text-muted'}`}
+                        style={{ border: 'none', background: 'none', lineHeight: 1 }}
+                    >
+                        <ChevronDown size={20} />
+                    </button>
                 </div>
 
-                {/* Tombol Comment */}
-                <div 
-                    style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '6px', 
-                        cursor: 'pointer', 
-                        color: '#657786', 
-                        marginLeft: '20px' 
-                    }}
-                    onClick={handleCommentClick}
-                >
-                    <span style={{fontSize: '1.2rem'}}>💬</span>
-                    <span style={{fontSize: '0.9rem', fontWeight: 600}}>Comment</span>
+                {/* Comments */}
+                <div className="d-flex align-items-center gap-2">
+                    <MessageSquare size={18} />
+                    <span>{thread.commentCount || 0} Comments</span>
                 </div>
 
-                {/* Tombol Share (Visual Saja) */}
-                <div 
-                    style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '6px', 
-                        cursor: 'pointer', 
-                        color: '#657786', 
-                        marginLeft: 'auto' // Dorong ke kanan
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <span style={{fontSize: '1.2rem'}}>🔄</span>
+                {/* Share */}
+                <div className="d-flex align-items-center gap-2">
+                    <Share2 size={18} />
+                    <span>Share</span>
                 </div>
-
             </div>
         </div>
     );
