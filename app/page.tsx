@@ -135,7 +135,7 @@ export default function Home() {
 
       <div className="main-container">
         <div className="main-dashboard-layout">
-          <Sidebar activeView={currentView} onMenuClick={handleNavChange} />
+          <Sidebar activeView={currentView} onMenuClick={(view) => router.push(view === 'home' ? '/' : `/${view}`)} />
 
           <div className="main-content">
             {renderMainContent()}

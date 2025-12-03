@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PostData, api } from '@/lib/api';
-import { ChevronUp, ChevronDown, MessageSquare, Share2 } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, MessageSquare, Share2 } from 'lucide-react';
 
 // Helper: Warna avatar acak berdasarkan huruf depan
 function getAvatarColor(letter: string) {
@@ -25,8 +25,9 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
     const [downvotes, setDownvotes] = useState(thread.downvotes || 0);
     const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [localCommentCount, setLocalCommentCount] = useState(thread.commentCount || 0);
 
-    // Get current user
+    // Get current user & fetch comment count if missing
     useEffect(() => {
         const sessionData = localStorage.getItem('userSession');
         if (sessionData) {
@@ -39,13 +40,33 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
                 }
             }
         }
+
+        // Fetch comment count if it looks like it might be missing (0 could be real, but safe to check for older posts)
+        const fetchCommentCount = async () => {
+            if (thread.commentCount === undefined) {
+                try {
+                    const comments = await api.comments.getByPost(thread.id);
+                    setLocalCommentCount(comments.length);
+                } catch (e) {
+                    console.error("Failed to fetch comment count", e);
+                }
+            }
+        };
+        fetchCommentCount();
+
     }, [thread]);
+
+    // Update local count if prop changes
+    useEffect(() => {
+        if (thread.commentCount !== undefined) {
+            setLocalCommentCount(thread.commentCount);
+        }
+    }, [thread.commentCount]);
 
     // Ambil inisial nama untuk avatar
     const initial = thread.author ? thread.author.charAt(0).toUpperCase() : '?';
     const voteScore = upvotes - downvotes;
 
-    // 1. Fungsi Navigasi ke Detail Page
     const handleCardClick = (e: React.MouseEvent) => {
         if (clickable) {
             router.push(`/thread/${thread.id}`);
@@ -131,7 +152,7 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
                         <div className="d-flex align-items-center gap-2">
                             <span className="author-name small fw-bold">{thread.author}</span>
                             <span className="text-muted small">•</span>
-                            <span className="post-date small text-muted">{thread.date || 'Baru saja'}</span>
+                            <span className="post-date small text-muted">{thread.date || 'Just now'}</span>
                         </div>
                     </div>
 
@@ -175,7 +196,7 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
                         className={`btn btn-sm p-0 ${userVote === 'up' ? 'text-success' : 'text-muted'}`}
                         style={{ border: 'none', background: 'none', lineHeight: 1 }}
                     >
-                        <ChevronUp size={20} />
+                        <ThumbsUp size={18} fill={userVote === 'up' ? "currentColor" : "none"} />
                     </button>
                     <span className="mx-1" style={{ minWidth: '15px', textAlign: 'center' }}>{voteScore}</span>
                     <button
@@ -183,14 +204,14 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
                         className={`btn btn-sm p-0 ${userVote === 'down' ? 'text-danger' : 'text-muted'}`}
                         style={{ border: 'none', background: 'none', lineHeight: 1 }}
                     >
-                        <ChevronDown size={20} />
+                        <ThumbsDown size={18} fill={userVote === 'down' ? "currentColor" : "none"} />
                     </button>
                 </div>
 
                 {/* Comments */}
                 <div className="d-flex align-items-center gap-2">
                     <MessageSquare size={18} />
-                    <span>{thread.commentCount || 0} Comments</span>
+                    <span>{localCommentCount > 0 ? `${localCommentCount} Comments` : 'Comments'}</span>
                 </div>
 
                 {/* Share */}

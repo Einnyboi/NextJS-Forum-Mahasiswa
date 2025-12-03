@@ -55,20 +55,17 @@ const CommunityPage = () => {
             <Navbar onNavChange={(view) => {
                 if (view === 'home') router.push('/');
                 else if (view === 'community') router.push('/community');
-                // Add other routes if needed
+                else if (view === 'event') router.push('/event');
             }} isLoggedIn={!!user} userRole={user?.role} />
 
             <div className="main-dashboard-layout">
-                <Sidebar activeView="community" onMenuClick={(view) => {
-                    if (view === 'home') router.push('/');
-                    else if (view === 'community') router.push('/community');
-                }} />
+                <Sidebar activeView="community" onMenuClick={(view) => router.push(view === 'home' ? '/' : `/${view}`)} />
 
                 <div className="main-content">
                     <div className="d-flex justify-content-between align-items-center mb-4 welcome-banner">
                         <div>
-                            <h1 className="welcome-title">Temukan Komunitas</h1>
-                            <p className="welcome-text">Bergabunglah dengan komunitas yang sesuai minatmu.</p>
+                            <h1 className="welcome-title">Discover Communities</h1>
+                            <p className="welcome-text">Join communities that match your interests.</p>
                         </div>
 
                         {user && (
@@ -76,16 +73,16 @@ const CommunityPage = () => {
                                 className="btn-create-test"
                                 onClick={() => setShowCreateModal(true)}
                             >
-                                + Buat Komunitas
+                                + Create Community
                             </button>
                         )}
                     </div>
 
                     {isLoading ? (
-                        <p className="state-message">Memuat komunitas...</p>
+                        <p className="state-message">Loading communities...</p>
                     ) : communities.length === 0 ? (
                         <div className="state-message">
-                            <p>Belum ada komunitas.</p>
+                            <p>No communities found.</p>
                         </div>
                     ) : (
                         <div className="d-flex flex-column gap-3">

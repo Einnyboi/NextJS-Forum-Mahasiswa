@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Navbar from "@/components/layout/navbar";
 import Sidebar from "@/components/layout/sidebar";
 import { ThreadCard } from "@/components/features/thread/ThreadCard";
-import CommunityCard from "@/components/features/community/CommunityCard"; // Import CommunityCard
+import CommunityCard from "@/components/features/community/CommunityCard";
 import { api, PostData, CommunityData } from "@/lib/api";
 import { Paperclip } from 'lucide-react';
 
@@ -60,7 +60,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
             onSubmit();
             onClose();
         } else {
-            alert("Gagal memposting.");
+            alert("Failed to post.");
         }
     };
 
@@ -68,12 +68,12 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h3 className="modal-title">Buat Diskusi Baru</h3>
+                    <h3 className="modal-title">Create New Discussion</h3>
                     <button className="btn-close" onClick={onClose}>&times;</button>
                 </div>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label className="form-label">Judul Topik</label>
+                        <label className="form-label">Topic Title</label>
                         <input type="text" className="form-input" value={title} onChange={e => setTitle(e.target.value)} required />
                     </div>
 
@@ -81,7 +81,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
                     <div className="form-group">
                         <label className="btn btn-light btn-sm d-flex align-items-center gap-2 w-auto" style={{ width: 'fit-content', cursor: 'pointer' }}>
                             <Paperclip size={18} />
-                            <span>Tambahkan Gambar</span>
+                            <span>Add Image</span>
                             <input
                                 type="file"
                                 accept="image/*"
@@ -106,13 +106,13 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Isi Diskusi</label>
+                        <label className="form-label">Discussion Content</label>
                         <textarea className="form-textarea" value={content} onChange={e => setContent(e.target.value)} required />
                     </div>
                     <div className="modal-actions">
-                        <button type="button" className="btn-cancel" onClick={onClose}>Batal</button>
+                        <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
                         <button type="submit" className="btn-submit" disabled={isSubmitting}>
-                            {isSubmitting ? "Memposting..." : "Posting"}
+                            {isSubmitting ? "Posting..." : "Post"}
                         </button>
                     </div>
                 </form>
@@ -181,38 +181,68 @@ export default function CommunityDetailPage() {
             <Navbar onNavChange={() => router.push('/')} isLoggedIn={!!user} userRole={user?.role} />
 
             <div className="main-dashboard-layout">
-                <Sidebar activeView="community" onMenuClick={(view) => router.push(`/${view}`)} />
+                <Sidebar activeView="community" onMenuClick={(view) => router.push(view === 'home' ? '/' : `/${view}`)} />
 
                 <div className="main-content">
 
-                    {/* Back Button */}
-                    <button
-                        onClick={() => router.push('/community')}
-                        className="btn btn-link text-decoration-none p-0 mb-3 d-flex align-items-center gap-2 text-muted"
-                    >
-                        &larr; Kembali ke Daftar Komunitas
-                    </button>
+                    {/* WRAPPER UTAMA: RIGHT PANEL CARD */}
+                    <div className="right-panel-card">
 
-                    {/* Header Komunitas Menggunakan CommunityCard */}
-                    <div className="mb-4">
-                        {community ? (
-                            <CommunityCard
-                                community={community}
-                                isJoined={false}
-                            />
-                        ) : (
-                            <div className="p-4 bg-white rounded shadow-sm">Memuat info komunitas...</div>
-                        )}
-                    </div>
+                        {/* Back Button & Header */}
+                        <div className="d-flex align-items-center mb-4 gap-3">
+                            <div className="bg-light p-2 rounded-3 d-inline-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', cursor: 'pointer', position: 'relative', zIndex: 50 }}>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        router.push('/community');
+                                    }}
+                                    className="btn btn-link text-decoration-none p-0 d-flex align-items-center justify-content-center text-dark"
+                                    style={{ width: '100%', height: '100%' }}
+                                >
+                                    <span className="fw-bold fs-5">&lt;</span>
+                                </button>
+                            </div>
+                            {/* Judul Halaman: Nama Komunitas */}
+                            <h2 className="m-0 fw-bold fs-4 text-dark">{community?.name || 'Community'}</h2>
+                        </div>
 
-                    {/* Tombol Buat Diskusi */}
-                    <div className="mb-4">
-                        {user ? (
-                            <button className="btn-create-test w-100" onClick={() => setIsModalOpen(true)}>
-                                + Buat Diskusi Baru di {community?.name}
-                            </button>
+                        {/* Header Komunitas Menggunakan CommunityCard */}
+                        <div className="mb-4">
+                            {community ? (
+                                <CommunityCard
+                                    community={community}
+                                    isJoined={false}
+                                />
+                            ) : (
+                                <div className="p-4 bg-light rounded shadow-sm text-center">Loading community info...</div>
+                            )}
+                        </div>
+
+                        {/* Tombol Buat Diskusi */}
+                        <div className="mb-4">
+                            {user ? (
+                                <button className="btn-create-test w-100" onClick={() => setIsModalOpen(true)}>
+                                    + Create New Discussion in {community?.name}
+                                </button>
+                            ) : (
+                                <div className="alert alert-warning">Login to start a discussion.</div>
+                            )}
+                        </div>
+
+                        {/* List Threads */}
+                        {loading ? (
+                            <p className="state-message">Loading discussions...</p>
+                        ) : posts.length > 0 ? (
+                            <div className="d-flex flex-column gap-3">
+                                {posts.map(post => (
+                                    <ThreadCard key={post.id} thread={post} />
+                                ))}
+                            </div>
                         ) : (
-                            <div className="alert alert-warning">Login untuk membuat diskusi.</div>
+                            <div className="state-message">
+                                <p>No discussions in this community yet.</p>
+                                <p className="small">Be the first to start a topic!</p>
+                            </div>
                         )}
                     </div>
 
@@ -224,22 +254,6 @@ export default function CommunityDetailPage() {
                         userEmail={user?.email}
                         communityId={communityId}
                     />
-
-                    {/* List Threads */}
-                    {loading ? (
-                        <p className="state-message">Memuat diskusi...</p>
-                    ) : posts.length > 0 ? (
-                        <div className="d-flex flex-column gap-3">
-                            {posts.map(post => (
-                                <ThreadCard key={post.id} thread={post} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="state-message">
-                            <p>Belum ada diskusi di komunitas ini.</p>
-                            <p className="small">Jadilah yang pertama memulai topik!</p>
-                        </div>
-                    )}
 
                 </div>
             </div>

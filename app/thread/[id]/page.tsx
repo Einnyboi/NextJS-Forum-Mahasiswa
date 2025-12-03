@@ -1,30 +1,28 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Navbar from "@/components/layout/navbar";
 import Sidebar from "@/components/layout/sidebar";
 import { ThreadCard } from "@/components/features/thread/ThreadCard";
 import { api, PostData, CommentData } from "@/lib/api";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { Heart, Paperclip } from 'lucide-react'; // Import Heart and Paperclip icon
+import { Heart, Paperclip } from 'lucide-react';
 
 export default function ThreadDetailPage() {
     const params = useParams();
+    const router = useRouter();
     const postId = params.id as string;
 
     const [user, setUser] = useState<any>(null);
     const [post, setPost] = useState<PostData | null>(null);
     const [comments, setComments] = useState<CommentData[]>([]);
     const [newComment, setNewComment] = useState("");
-    const [commentImage, setCommentImage] = useState(""); // NEW: Comment Image State
+    const [commentImage, setCommentImage] = useState("");
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
     // 1. Cek User
     useEffect(() => {
-        // Use localStorage for consistency with other pages
         const sessionData = localStorage.getItem('userSession');
         if (sessionData) {
             const session = JSON.parse(sessionData);
@@ -78,27 +76,27 @@ export default function ThreadDetailPage() {
         const success = await api.comments.create({
             postId: postId,
             content: newComment,
-            imageUrl: commentImage, // NEW: Pass image URL
+            imageUrl: commentImage,
             author: user?.email || "Anonymous"
         });
 
         if (success) {
             setNewComment("");
-            setCommentImage(""); // Reset image
-            fetchData(); // Refresh komentar
+            setCommentImage("");
+            fetchData();
         } else {
-            alert("Gagal mengirim komentar.");
+            alert("Failed to post comment.");
         }
         setSubmitting(false);
     };
 
     // 4. Handle Like Comment
     const handleLikeComment = async (commentId: string) => {
-        if (!user?.email) return alert("Login untuk menyukai komentar.");
+        if (!user?.email) return alert("Login to like comments.");
 
         const success = await api.comments.toggleLike(commentId, user.email);
         if (success) {
-            fetchData(); // Refresh to show new like count/status
+            fetchData();
         }
     };
 
@@ -112,23 +110,37 @@ export default function ThreadDetailPage() {
                 <div className="main-content">
 
                     {loading ? (
-                        <p className="state-message">Memuat diskusi...</p>
+                        <p className="state-message">Loading discussion...</p>
                     ) : post ? (
                         <>
-                            {/* Back Button */}
-                            <button
-                                onClick={() => window.history.back()}
-                                className="btn btn-link text-decoration-none p-0 mb-3 d-flex align-items-center gap-2 text-muted"
-                            >
-                                &larr; Kembali
-                            </button>
+                            {/* Back Button & Header */}
+                            <div className="d-flex align-items-center mb-3 position-relative mt-4">
+                                <div className="bg-white p-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', zIndex: 2 }}>
+                                    <button
+                                        onClick={() => {
+                                            if (post.communityId) {
+                                                router.push(`/community/${post.communityId}`);
+                                            } else {
+                                                router.push('/community');
+                                            }
+                                        }}
+                                        className="btn btn-link text-decoration-none p-0 d-flex align-items-center justify-content-center text-dark"
+                                    >
+                                        <span className="fw-bold fs-5">&lt;</span>
+                                    </button>
+                                </div>
+                                <div className="flex-grow-1 ms-3" style={{ borderBottom: '1px solid black' }}></div>
+                                <div className="position-absolute start-50 translate-middle-x px-3" style={{ backgroundColor: 'var(--primary-color)', zIndex: 1 }}>
+                                    <span className="fw-bold fs-4 text-dark">Threads</span>
+                                </div>
+                            </div>
 
                             {/* TAMPILKAN POST UTAMA (Tidak bisa diklik lagi) */}
-                            <ThreadCard thread={post} clickable={false} />
+                            <ThreadCard thread={post} clickable={false} hideCommentAction={true} />
 
                             {/* BAGIAN KOMENTAR */}
                             <div className="mt-4 p-4 bg-white rounded-4 shadow-sm" style={{ borderRadius: '16px' }}>
-                                <h4 className="fw-bold mb-4">Komentar ({comments.length})</h4>
+                                <h4 className="fw-bold mb-4">Comments ({comments.length})</h4>
 
                                 {/* Form Komentar */}
                                 {user ? (
@@ -137,8 +149,8 @@ export default function ThreadDetailPage() {
                                             <div className="flex-grow-1 position-relative">
                                                 <input
                                                     type="text"
-                                                    className="form-control rounded-pill px-4 pe-5" // Add padding right for icon
-                                                    placeholder="Tulis balasanmu..."
+                                                    className="form-control rounded-pill px-4 pe-5"
+                                                    placeholder="Write your reply..."
                                                     value={newComment}
                                                     onChange={(e) => setNewComment(e.target.value)}
                                                     disabled={submitting}
@@ -162,7 +174,7 @@ export default function ThreadDetailPage() {
                                                 className="btn btn-dark rounded-pill px-4"
                                                 disabled={submitting || !newComment}
                                             >
-                                                {submitting ? '...' : 'Kirim'}
+                                                {submitting ? '...' : 'Post'}
                                             </button>
                                         </div>
 
@@ -183,7 +195,7 @@ export default function ThreadDetailPage() {
                                     </form>
                                 ) : (
                                     <div className="alert alert-light border mb-4 text-center">
-                                        <a href="/login" className="fw-bold text-dark">Login</a> untuk ikut berdiskusi.
+                                        <a href="/login" className="fw-bold text-dark">Login</a> to join the discussion.
                                     </div>
                                 )}
 
@@ -196,7 +208,7 @@ export default function ThreadDetailPage() {
                                             <div key={comment.id} className="p-3 border-bottom">
                                                 <div className="d-flex justify-content-between mb-1">
                                                     <span className="fw-bold text-dark small">{comment.author}</span>
-                                                    <span className="text-muted small" style={{ fontSize: '0.75rem' }}>Baru saja</span>
+                                                    <span className="text-muted small" style={{ fontSize: '0.75rem' }}>Just now</span>
                                                 </div>
 
                                                 <p className="mb-2 text-secondary">{comment.content}</p>
@@ -227,13 +239,13 @@ export default function ThreadDetailPage() {
                                             </div>
                                         );
                                     }) : (
-                                        <p className="text-center text-muted small my-3">Belum ada komentar.</p>
+                                        <p className="text-center text-muted small my-3">No comments yet.</p>
                                     )}
                                 </div>
                             </div>
                         </>
                     ) : (
-                        <p className="state-message">Postingan tidak ditemukan.</p>
+                        <p className="state-message">Post not found.</p>
                     )}
 
                 </div>

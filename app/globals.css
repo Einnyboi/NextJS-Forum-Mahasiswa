@@ -289,9 +289,9 @@ a {
 /* === MODAL STYLES === */
 .modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: transparent;
     display: flex; justify-content: center; align-items: center;
-    z-index: 2000; backdrop-filter: blur(4px); animation: fadeIn 0.2s ease-out;
+    z-index: 2000; animation: fadeIn 0.2s ease-out;
 }
 .modal-content {
     background: var(--white-color);
@@ -334,4 +334,18 @@ a {
     .main-content {
         padding: 0;
     }
+}
+
+/* === RIGHT PANEL CARD (NEW) === */
+.right-panel-card {
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 120px);
+    background-color: var(--white-color);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    overflow-y: auto;
+    width: 100%;
 }
