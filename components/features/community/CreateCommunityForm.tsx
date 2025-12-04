@@ -14,6 +14,7 @@ export default function CreateCommunityForm({ show, onHide, onSuccess }: CreateC
   const [handle, setHandle] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [bannerUrl, setBannerUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -21,7 +22,6 @@ export default function CreateCommunityForm({ show, onHide, onSuccess }: CreateC
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setName(value);
-    // Auto-generate handle from name
     const autoHandle = value
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
@@ -36,8 +36,13 @@ export default function CreateCommunityForm({ show, onHide, onSuccess }: CreateC
     setError('');
     setSuccess('');
 
-    if (!name.trim() || !handle.trim() || !imageUrl.trim()) {
-      setError('Name, handle, and image URL are required');
+    if (!name.trim() || !handle.trim()) {
+      setError('Name and handle are required');
+      return;
+    }
+
+    if (!imageUrl.trim()) {
+      setError('Profile image URL is required');
       return;
     }
 
@@ -47,7 +52,13 @@ export default function CreateCommunityForm({ show, onHide, onSuccess }: CreateC
       const response = await fetch('/api/communities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, handle, description, imageUrl })
+        body: JSON.stringify({ 
+          name, 
+          handle, 
+          description, 
+          imageUrl,
+          bannerUrl: bannerUrl || undefined
+        })
       });
 
       const data = await response.json();
@@ -61,11 +72,11 @@ export default function CreateCommunityForm({ show, onHide, onSuccess }: CreateC
       setTimeout(() => {
         onSuccess();
         onHide();
-        // Reset form
         setName('');
         setHandle('');
         setDescription('');
         setImageUrl('');
+        setBannerUrl('');
         setSuccess('');
       }, 1500);
     } catch (error) {
@@ -124,7 +135,7 @@ export default function CreateCommunityForm({ show, onHide, onSuccess }: CreateC
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Image URL *</Form.Label>
+            <Form.Label>Profile Image URL *</Form.Label>
             <Form.Control
               type="url"
               placeholder="https://example.com/image.jpg"
@@ -132,6 +143,23 @@ export default function CreateCommunityForm({ show, onHide, onSuccess }: CreateC
               onChange={(e) => setImageUrl(e.target.value)}
               disabled={isLoading}
             />
+            <Form.Text className="text-muted">
+              Use a free image hosting service like Imgur, Postimages, or ImgBB
+            </Form.Text>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Banner Image URL (optional)</Form.Label>
+            <Form.Control
+              type="url"
+              placeholder="https://example.com/banner.jpg"
+              value={bannerUrl}
+              onChange={(e) => setBannerUrl(e.target.value)}
+              disabled={isLoading}
+            />
+            <Form.Text className="text-muted">
+              Wider format recommended for banners (16:9 or 21:9)
+            </Form.Text>
           </Form.Group>
 
           <div className="d-flex gap-2">
