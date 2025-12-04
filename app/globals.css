@@ -557,6 +557,7 @@ a {
 /* Push Explore button to the right - REMOVED as requested */
 .community-pills-container {
     justify-content: flex-start; /* Default alignment */
+}
 @media (max-width: 480px)
 {
     .sidebar-link
