@@ -1,12 +1,16 @@
 'use client'
 import React, { useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import { Search, Github as User, LogOut, History, X } from 'lucide-react';
+import { Search, Github as User, LogOut, History, Menu, X } from 'lucide-react';
+
+type FormControlElement = HTMLInputElement | HTMLTextAreaElement;
+type SearchInputEvent = React.MouseEvent<FormControlElement> | React.FocusEvent<FormControlElement>;
 
 interface AppNavbarProps
 {
@@ -16,6 +20,29 @@ interface AppNavbarProps
 
 function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps) 
 {
+    const router = useRouter();
+    const pathname = usePathname(); // Get current path
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault(); 
+        const trimmedQuery = searchQuery.trim();
+        if (router) {
+            if (trimmedQuery !== '') {
+                router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
+            } else {
+                // If search is empty, just navigate to the search page
+                router.push('/search');
+            }
+        }
+    };
+
+    const handleSearchAction = (e: SearchInputEvent) => {
+        // Navigates to the search page immediately on click/focus
+        if (router && !pathname.startsWith('/search')) {
+            router.push('/search');
+        }
+    };
     const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
@@ -109,7 +136,7 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                 <Container fluid>
                     <Navbar.Brand
                         href='/'
-                        className="navi-title"
+                        className="navi-title me-3"
                     >
                         Foma
                     </Navbar.Brand>
@@ -185,6 +212,19 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
 
                 /* Search Bar Container */
                 .search
+                {
+                    width: 100%;
+                    max-width: 500px;
+                    display: flex;
+                    align-items: center;
+                    border-radius: 50px;
+                    overflow: hidden;
+                    background-color: var(--primary-color);
+                    border: 1px solid var(--border-color);
+                }
+
+                /* Search Bar */
+                .search-mobile
                 {
                     flex-grow: 1;
                     max-width: 500px;
@@ -313,7 +353,57 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     color: var(--secondary-color);
                 }
 
-                /* Responsivenes */
+                /* --- Mobile Collapse Styles --- */
+                .navbar-mobile-toggle
+                {
+                    /* Style the hamburger menu toggle */
+                    border: 1px solid var(--border-color) !important; 
+                    border-radius: 8px !important;
+                    min-width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .mobile-auth-wrapper
+                {
+                    padding: 0.5rem 0;
+                }
+                .mobile-auth-section
+                {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+                .signin-mobile
+                {
+                    padding: 1rem;
+                }
+                .signin-mobile .lgnBtn
+                {
+                    min-width: unset;
+                    width: 100%;
+                }
+                
+                .mobile-profile-link
+                {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    padding: 0.75rem 1.5rem !important;
+                    border-radius: 0;
+                    text-decoration: none;
+                    color: var(--secondary-color);
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: background-color 0.2s ease;
+                }
+                .mobile-profile-link:hover
+                {
+                    background-color: var(--primary-color);
+                }
+
+                /* Responsiveness */
                 @media (max-width: 992px)
                 {
                     .navigation
@@ -330,11 +420,34 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     }
                     .navbar-collapse
                     {
+                        width: 100%;
+                        flex-basis: 100%;
+                        margin-top: 0;
+                        order: 2;
                         order: 4;
                     }
                     .navbar-toggler
                     {
                         margin-right: 0.5rem;
+                    }
+                }
+                
+                @media (min-width: 992px)
+                {
+                    .navbar-expand-lg .container-fluid
+                    {
+                        justify-content: space-between !important;
+                        flex-wrap: nowrap !important;
+                    }
+                    
+                    .navigation .container-fluid > div:nth-child(2)
+                    {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-left: auto !important;
+                        margin-right: auto !important;
+                        flex-grow: 1;
                     }
                 }
 

@@ -155,6 +155,8 @@ const CommunityPage = () => {
                             display: grid;
                             grid-template-columns: repeat(3, 1fr);
                             gap: 24px;
+                            position: relative;
+                            z-index: 1;
                         }
 
                         @media (max-width: 1200px) {

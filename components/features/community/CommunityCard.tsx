@@ -3,7 +3,7 @@
 import { CommunityData, api } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Users, UserPlus, UserCheck } from 'lucide-react';
+import { Users, UserPlus, UserCheck, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 type CommunityCardProps = {
@@ -12,7 +12,7 @@ type CommunityCardProps = {
 
 export default function CommunityCard({ community }: CommunityCardProps) {
   const router = useRouter();
-  const [showDescription, setShowDescription] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -70,10 +70,8 @@ export default function CommunityCard({ community }: CommunityCardProps) {
     <div
       className="community-card-modern"
       onClick={handleClick}
-      onMouseEnter={() => setShowDescription(true)}
-      onMouseLeave={() => setShowDescription(false)}
     >
-      {/* Banner Image */}
+      {/* Banner Background */}
       <div className="community-banner">
         <Image
           src={community.bannerUrl || community.imageUrl || "https://via.placeholder.com/400x150"}
@@ -85,51 +83,77 @@ export default function CommunityCard({ community }: CommunityCardProps) {
         <div className="banner-overlay"></div>
       </div>
 
-      {/* Profile Image - Overlapping Banner */}
-      <div className="community-profile">
-        <Image
-          src={community.imageUrl || "https://via.placeholder.com/80"}
-          alt={community.name}
-          width={80}
-          height={80}
-          className="rounded-circle border border-3"
-          unoptimized
-          style={{ objectFit: 'cover', borderColor: '#ecebf3' }}
-        />
-      </div>
-
-      {/* Community Info */}
-      <div className="community-info">
-        <h5 className="community-name">{community.name}</h5>
-        <div className="community-members">
-          <Users size={14} className="me-1" />
-          <span>{memberCount} Members</span>
+      {/* Content with Profile */}
+      <div className="card-content">
+        {/* Profile Image - Left */}
+        <div className="community-profile">
+          <Image
+            src={community.imageUrl || "https://via.placeholder.com/80"}
+            alt={community.name}
+            width={60}
+            height={60}
+            className="profile-image"
+            unoptimized
+            style={{ objectFit: 'cover', borderRadius: '50%' }}
+          />
         </div>
-        <button
-          onClick={handleJoinToggle}
-          className={`join-button ${isJoined ? 'joined' : ''}`}
-          disabled={isProcessing}
-        >
-          {isProcessing ? (
-            'Loading...'
-          ) : isJoined ? (
-            <>
-              <UserCheck size={16} className="me-1" />
-              Joined
-            </>
-          ) : (
-            <>
-              <UserPlus size={16} className="me-1" />
-              Join
-            </>
+
+        {/* Info Area */}
+        <div className="community-info">
+          {/* Header: Name & Members */}
+          <div className="info-top">
+            <div>
+              <h5 className="community-name">{community.name}</h5>
+              <div className="community-members">
+                <Users size={13} />
+                <span>{memberCount} Members</span>
+              </div>
+            </div>
+            
+            {/* Join Button - Compact */}
+            <button
+              onClick={handleJoinToggle}
+              className={`join-button ${isJoined ? 'joined' : ''}`}
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                'Loading...'
+              ) : isJoined ? (
+                <>
+                  <UserCheck size={14} />
+                  <span>Joined</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus size={14} />
+                  <span>Join</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Description */}
+          {community.description && (
+            <p className="community-description">
+              {community.description}
+            </p>
           )}
-        </button>
+        </div>
       </div>
 
-      {/* Description Overlay on Hover */}
-      {showDescription && community.description && (
-        <div className="community-description-overlay">
-          <p>{community.description}</p>
+      {/* Modal for full description */}
+      {showModal && community.description && (
+        <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowModal(false)}>
+              <X size={20} />
+            </button>
+            <h3 className="modal-title">{community.name}</h3>
+            <div className="modal-body">
+              <h4>About this community</h4>
+              <p>{community.description}</p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -138,25 +162,25 @@ export default function CommunityCard({ community }: CommunityCardProps) {
           position: relative;
           background: #ecebf3;
           border-radius: 12px;
-          overflow: visible;
+          overflow: hidden;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           cursor: pointer;
           transition: transform 0.2s, box-shadow 0.2s;
-          height: 320px;
+          height: 180px;
         }
 
         .community-card-modern:hover {
-          transform: translateY(-4px);
+          transform: translateY(-2px);
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-          z-index: 10;
         }
 
         .community-banner {
-          position: relative;
+          position: absolute;
+          top: 0;
+          left: 0;
           width: 100%;
-          height: 140px;
+          height: 70px;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-radius: 12px 12px 0 0;
           overflow: hidden;
         }
 
@@ -166,29 +190,49 @@ export default function CommunityCard({ community }: CommunityCardProps) {
           left: 0;
           width: 100%;
           height: 100%;
-          background: linear-gradient(135deg, rgba(199, 214, 213, 0.4) 0%, rgba(159, 174, 173, 0.5) 100%);
+          background: linear-gradient(135deg, rgba(199, 214, 213, 0.3) 0%, rgba(159, 174, 173, 0.4) 100%);
           pointer-events: none;
-          z-index: 1;
+        }
+
+        .card-content {
+          position: relative;
+          display: flex;
+          gap: 14px;
+          padding: 50px 16px 16px;
+          height: 100%;
         }
 
         .community-profile {
-          position: absolute;
-          top: 100px;
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 2;
+          flex-shrink: 0;
+          margin-top: -20px;
+        }
+
+        .profile-image {
+          border-radius: 50%;
+          border: 3px solid white;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         .community-info {
-          padding: 50px 16px 16px;
-          text-align: center;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          min-width: 0;
+        }
+
+        .info-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 12px;
         }
 
         .community-name {
-          font-size: 1.1rem;
+          font-size: 1rem;
           font-weight: 700;
           color: var(--secondary-color);
-          margin-bottom: 8px;
+          margin: 0 0 4px 0;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -197,25 +241,39 @@ export default function CommunityCard({ community }: CommunityCardProps) {
         .community-members {
           display: flex;
           align-items: center;
-          justify-content: center;
+          gap: 5px;
           color: #6c757d;
-          font-size: 0.875rem;
-          margin-bottom: 12px;
+          font-size: 0.8rem;
+        }
+
+        .community-description {
+          font-size: 0.85rem;
+          color: #555;
+          line-height: 1.4;
+          margin: 0;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .join-button {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
-          padding: 6px 20px;
+          gap: 6px;
+          padding: 6px 16px;
           border: 2px solid var(--primary-color);
           background: white;
           color: var(--primary-color);
           border-radius: 20px;
-          font-size: 0.875rem;
+          font-size: 0.8rem;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s;
+          flex-shrink: 0;
+          white-space: nowrap;
+        }
         }
 
         .join-button:hover:not(:disabled) {
@@ -239,66 +297,94 @@ export default function CommunityCard({ community }: CommunityCardProps) {
           cursor: not-allowed;
         }
 
-        .community-description-overlay {
-          position: absolute;
-          top: 50%;
-          left: calc(100% + 12px);
-          transform: translateY(-50%);
-          background: #ecebf3;
-          backdrop-filter: blur(8px);
-          color: #0c120c;
-          padding: 16px;
-          border-radius: 8px;
-          min-width: 250px;
-          max-width: 300px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-          z-index: 100;
-          pointer-events: none;
-          animation: slideInRight 0.2s ease;
+        .modal-backdrop {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+          animation: fadeIn 0.2s ease;
         }
 
-        .community-description-overlay::before {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: -8px;
-          transform: translateY(-50%);
-          width: 0;
-          height: 0;
-          border-style: solid;
-          border-width: 8px 8px 8px 0;
-          border-color: transparent #ecebf3 transparent transparent;
+        .modal-content {
+          background: white;
+          border-radius: 16px;
+          width: 90%;
+          max-width: 500px;
+          max-height: 80vh;
+          overflow: auto;
+          padding: 24px;
+          position: relative;
+          animation: slideUp 0.3s ease;
         }
 
-        .community-description-overlay p {
-          margin: 0;
+        .modal-close {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: #666;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+          background: #f0f0f0;
+          color: #333;
+        }
+
+        .modal-title {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--secondary-color);
+          margin: 0 0 20px 0;
+          padding-right: 32px;
+        }
+
+        .modal-body h4 {
           font-size: 0.875rem;
-          line-height: 1.5;
+          font-weight: 700;
+          color: var(--primary-color);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin: 0 0 12px 0;
         }
 
-        @keyframes slideInRight {
+        .modal-body p {
+          font-size: 0.95rem;
+          line-height: 1.6;
+          color: #444;
+          margin: 0;
+        }
+
+        @keyframes slideUp {
           from {
             opacity: 0;
-            transform: translateY(-50%) translateX(-10px);
+            transform: translateY(20px);
           }
           to {
             opacity: 1;
-            transform: translateY(-50%) translateX(0);
+            transform: translateY(0);
           }
         }
 
-        /* Handle edge case when card is on the right side */
-        @media (max-width: 1400px) {
-          .community-description-overlay {
-            left: auto;
-            right: calc(100% + 12px);
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
           }
-
-          .community-description-overlay::before {
-            left: auto;
-            right: -8px;
-            border-width: 8px 0 8px 8px;
-            border-color: transparent transparent transparent #ecebf3;
+          to {
+            opacity: 1;
           }
         }
       `}</style>
