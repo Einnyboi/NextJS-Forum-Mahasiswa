@@ -31,6 +31,13 @@ function AppNavbar({ onNavChange , isLoggedIn, userRole }: AppNavbarProps)
         onNavChange('signup');
     }
 
+    const handleLogout = (e: React.MouseEvent<HTMLAnchorElement>) =>
+{
+    e.preventDefault();
+    localStorage.removeItem('userSession');
+    onNavChange('login');
+}
+
     const checking = () =>
     {
         if (isLoggedIn)
@@ -70,7 +77,7 @@ function AppNavbar({ onNavChange , isLoggedIn, userRole }: AppNavbarProps)
                             History
                         </NavDropdown.Item>
                         <NavDropdown.Divider />
-                        <NavDropdown.Item href="#logout">
+                        <NavDropdown.Item href="#logout" onClick={handleLogout}>
                             <LogOut size={18} className="me-2" />
                             Logout
                         </NavDropdown.Item>

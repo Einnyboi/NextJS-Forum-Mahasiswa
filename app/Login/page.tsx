@@ -2,18 +2,18 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const Login: React.FC = () => {
+interface LoginProps {
+    onLoginSuccess?: () => void;
+}
+
+const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Hardcoded credentials
-    const ADMIN_EMAIL = 'admin@foma.com';
-    const ADMIN_PASSWORD = 'admin123';
-
-    const handleLogin = async (e: React.FormEvent, type: 'user' | 'admin') => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
@@ -23,36 +23,31 @@ const Login: React.FC = () => {
             await new Promise(resolve => setTimeout(resolve, 500));
 
             // Cek kredensial
-            if (type === 'admin') {
+            if (email === 'admin@foma.com' && password === 'admin123') {
                 // Login sebagai admin
-                if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-                    // Simpan session ke localStorage
-                    localStorage.setItem('userSession', JSON.stringify({
-                        email: email,
-                        role: 'admin',
-                        isLoggedIn: true,
-                        fullName: 'Super Admin'
-                    }));
-                    router.push('/admin');
+                localStorage.setItem('userSession', JSON.stringify({
+                    email: email,
+                    role: 'admin',
+                    isLoggedIn: true,
+                    fullName: 'Super Admin'
+                }));
+                router.push('/admin');
+            } else if (email && password) {
+                // Login sebagai user biasa
+                localStorage.setItem('userSession', JSON.stringify({
+                    email: email,
+                    role: 'user',
+                    isLoggedIn: true,
+                    fullName: 'User'
+                }));
+
+                if (onLoginSuccess) {
+                    onLoginSuccess();
                 } else {
-                    setError('Email atau password admin salah!');
+                    router.push('/');
                 }
             } else {
-                // Login sebagai user biasa
-                if (email === ADMIN_EMAIL) {
-                    setError('Anda Admin! Gunakan tombol "Login as Admin" di bawah.');
-                } else if (email && password) {
-                    // User biasa bisa login dengan email dan password apapun
-                    localStorage.setItem('userSession', JSON.stringify({
-                        email: email,
-                        role: 'user',
-                        isLoggedIn: true,
-                        fullName: 'User'
-                    }));
-                    router.push('/');
-                } else {
-                    setError('Email dan password harus diisi!');
-                }
+                setError('Email dan password harus diisi!');
             }
         } catch (err: any) {
             console.error(err);
@@ -98,16 +93,9 @@ const Login: React.FC = () => {
                 <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Welcome Back</h2>
                 <p style={{ color: '#666', marginBottom: '1rem' }}>Log in to continue</p>
 
-                {/* Info Box */}
-                <div className="info-box">
-                    <strong>Demo Credentials:</strong><br />
-                    Admin: admin@foma.com / admin123<br />
-                    User: email apapun / password apapun
-                </div>
-
                 {error && <div className="error">{error}</div>}
 
-                <form>
+                <form onSubmit={handleLogin}>
                     <div className="form-group">
                         <label>Email Address</label>
                         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -117,22 +105,12 @@ const Login: React.FC = () => {
                         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                     </div>
 
-                    {/* TOMBOL USER */}
                     <button
+                        type="submit"
                         className="loginBtn"
-                        onClick={(e) => handleLogin(e, 'user')}
                         disabled={loading}
                     >
                         {loading ? 'Processing...' : 'Login'}
-                    </button>
-
-                    {/* TOMBOL ADMIN */}
-                    <button
-                        className="adminBtn"
-                        onClick={(e) => handleLogin(e, 'admin')}
-                        disabled={loading}
-                    >
-                        Login as Admin
                     </button>
                 </form>
             </div>

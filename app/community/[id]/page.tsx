@@ -8,7 +8,6 @@ import { ThreadCard } from "@/components/features/thread/ThreadCard";
 import CommunityCard from "@/components/features/community/CommunityCard";
 import { api, PostData, CommunityData } from "@/lib/api";
 import { Paperclip } from 'lucide-react';
-
 // --- KOMPONEN MODAL CREATE POST (Khusus Komunitas) ---
 interface CreateModalProps {
     isOpen: boolean;
@@ -22,6 +21,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [imageUrl, setImageUrl] = useState("");
+    const [category, setCategory] = useState<'community' | 'event'>('community');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen) return null;
@@ -46,7 +46,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
             content,
             imageUrl,
             author: userEmail || "Anonymous",
-            category: 'community',
+            category: category,
             communityId: communityId,
             date: new Date().toLocaleDateString('id-ID'),
             createdAt: new Date()
@@ -57,6 +57,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
             setTitle("");
             setContent("");
             setImageUrl("");
+            setCategory('community');
             onSubmit();
             onClose();
         } else {
@@ -72,6 +73,19 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
                     <button className="btn-close" onClick={onClose}>&times;</button>
                 </div>
                 <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label className="form-label">Post Type</label>
+                        <select
+                            className="form-input"
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value as 'community' | 'event')}
+                            style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                        >
+                            <option value="community">Generic Post</option>
+                            <option value="event">Event</option>
+                        </select>
+                    </div>
+
                     <div className="form-group">
                         <label className="form-label">Topic Title</label>
                         <input type="text" className="form-input" value={title} onChange={e => setTitle(e.target.value)} required />
