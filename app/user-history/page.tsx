@@ -11,11 +11,49 @@ export default function HistoryPage() {
     const [sortBy, setSortBy] = useState('newest');
     const [posts, setPosts] = useState<Post[]>([]); 
     const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+    const [user, setUser] = useState<any>(null);
 
-    const currentUserId = "user-1"; 
+    // Get user from localStorage
+    const getCurrentUserId = () => {
+        if (typeof window === 'undefined') return null;
+        const sessionData = localStorage.getItem('userSession');
+        if (!sessionData) return null;
+        try {
+            const parsed = JSON.parse(sessionData);
+            return parsed?.id || parsed?.uid || parsed?.userId || null;
+        } catch {
+            return null;
+        }
+    };
+
+    // Check user session
+    useEffect(() => {
+        const checkUserSession = () => {
+            try {
+                const sessionData = localStorage.getItem('userSession');
+                if (sessionData) {
+                    const session = JSON.parse(sessionData);
+                    if (session.isLoggedIn) {
+                        setUser(session);
+                    }
+                } else {
+                    setUser(null);
+                }
+            } catch (error) {
+                console.error("Error reading session:", error);
+                setUser(null);
+            }
+        };
+
+        checkUserSession();
+        window.addEventListener('storage', checkUserSession);
+        return () => window.removeEventListener('storage', checkUserSession);
+    }, []);
 
     // LOGIKA FETCHING DATA
     useEffect(() => {
+        const currentUserId = getCurrentUserId();
+        
         if (!currentUserId) {
             setPosts([]); 
             return;
@@ -36,7 +74,7 @@ export default function HistoryPage() {
         };
 
         loadPosts();
-    }, [currentUserId]);
+    }, []);
     
     // Handler untuk perubahan sorting
     const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -110,7 +148,10 @@ export default function HistoryPage() {
             </Head>
 
             {/* NAVBAR DITEMPATKAN DI LUAR CONTAINER UTAMA */}
-            <Navbar />
+            <Navbar 
+                onNavChange={() => {}}
+                isLoggedIn={!!user}
+            />
             
             <div className="main-container hide-scrollbar">
                 <div className="main-dashboard-layout">

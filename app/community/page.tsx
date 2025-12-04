@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from "@/components/layout/navbar";
-import Sidebar from "@/components/layout/sidebar";
+import Navbar from "@/components/features/important/navbar";
+import Sidebar from "@/components/features/important/sidebar";
 import CommunityCard from "@/components/features/community/CommunityCard";
 import CreateCommunityForm from "@/components/features/community/CreateCommunityForm";
 import { api, CommunityData } from '@/lib/api';
