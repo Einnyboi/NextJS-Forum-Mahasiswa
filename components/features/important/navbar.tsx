@@ -28,51 +28,51 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
         onNavChange('signup');
     }
 
-    const handleLogout = () => {
+    const handleLogout = () =>
+    {
         localStorage.removeItem('userSession');
         window.location.href = '/';
     };
 
-    const checking = () =>
+    const desktopAuthContent = () =>
     {
         if (isLoggedIn)
         {
             return (
-                <Nav className="my-2 my-lg-0 profile-dropdown-toggle">
-                    <NavDropdown 
-                        title="User" 
-                        id="navbarScrollingDropdown" 
-                        align="end"
+                <NavDropdown 
+                    title="User" 
+                    id="navbarScrollingDropdown" 
+                    align="end"
+                    className="profile-dropdown-toggle"
+                >
+                    <NavDropdown.Item href="/profile">
+                        <User size={18} className="me-2" />
+                        Profile
+                    </NavDropdown.Item>
+                    <NavDropdown.Item href="/user-history">
+                        <History size={18} className="me-2" />
+                        History
+                    </NavDropdown.Item>
+                    <NavDropdown.Divider />
+                    <NavDropdown.Item 
+                        as="button"
+                        onClick={(e: React.MouseEvent) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleLogout();
+                        }}
+                        type="button"
                     >
-                        <NavDropdown.Item href="/profile">
-                            <User size={18} className="me-2" />
-                            Profile
-                        </NavDropdown.Item>
-                        <NavDropdown.Item href="/user-history">
-                            <History size={18} className="me-2" />
-                            History
-                        </NavDropdown.Item>
-                        <NavDropdown.Divider />
-                        <NavDropdown.Item 
-                            as="button"
-                            onClick={(e: React.MouseEvent) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleLogout();
-                            }}
-                            type="button"
-                        >
-                            <LogOut size={18} className="me-2" />
-                            Logout
-                        </NavDropdown.Item>
-                    </NavDropdown>
-                </Nav>
+                        <LogOut size={18} className="me-2" />
+                        Logout
+                    </NavDropdown.Item>
+                </NavDropdown>
             );
         }
         else
         {
             return (
-                <Nav className="d-flex align-items-center signin">
+                <div className="d-flex align-items-center signin"> 
                     <Button 
                         className='lgnBtn'
                         onClick={handleLoginClick}
@@ -85,7 +85,53 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     >
                         Sign Up
                     </Button>
+                </div>
+            );
+        }
+    };
+    
+    const mobileAuthContent = () =>
+    {
+        if (isLoggedIn)
+        {
+            return (
+                <Nav className="mobile-auth-section w-100 py-2">
+                    <Nav.Link href="/profile" className="mobile-profile-link">
+                        <User size={18} className="me-2" />
+                        Profile
+                    </Nav.Link>
+                    <Nav.Link href="/user-history" className="mobile-profile-link">
+                        <History size={18} className="me-2" />
+                        History
+                    </Nav.Link>
+                    <Nav.Link 
+                        as="button"
+                        onClick={handleLogout}
+                        className="mobile-profile-link logout"
+                    >
+                        <LogOut size={18} className="me-2" />
+                        Logout
+                    </Nav.Link>
                 </Nav>
+            );
+        }
+        else
+        {
+            return (
+                <div className="d-flex flex-column signin-mobile p-3 w-100">
+                    <Button 
+                        className='lgnBtn mb-2'
+                        onClick={handleLoginClick}
+                    >
+                        Login
+                    </Button>
+                    <Button 
+                        className='lgnBtn'
+                        onClick={handleSignupClick}
+                    >
+                        Sign Up
+                    </Button>
+                </div>
             );
         }
     };
@@ -93,32 +139,31 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
     return (
         <>
             <Navbar expand="lg" className='navigation'>
-                <Container fluid className='d-flex flex-nowrap align-items-center'>
+                <Container fluid className='d-flex align-items-center **justify-content-between**'> 
                     <Navbar.Brand
                         href='/'
-                        className="navi-title me-3"
+                        className="navi-title"
                     >
                         Foma
                     </Navbar.Brand>
-                
-                    {/* Searchbar PC */}
-                    <div className="d-none d-lg-flex flex-lg-grow-1 align-items-center justify-content-center mx-3">
-                        <Form className="d-flex search">
-                            <Form.Control
-                                type="search"
-                                placeholder="Searching for something?"
-                                className="me-0"
-                                aria-label="Search"
-                            />
-                            <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
-                                <Search size={25} />
-                            </Button>
-                        </Form>
-                    </div>
 
-                    {/* Searchbar Mobile */}
+                    <Form 
+                        className="d-none d-lg-flex search **flex-grow-1 mx-auto**" 
+                        style={{ maxWidth: '500px' }}
+                    >
+                        <Form.Control
+                            type="search"
+                            placeholder="Searching for something?"
+                            className="me-0"
+                            aria-label="Search"
+                        />
+                        <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
+                            <Search size={25} />
+                        </Button>
+                    </Form>
+
                     <div className="d-flex d-lg-none align-items-center flex-grow-1 justify-content-end">
-                        <Form className="d-flex search-mobile">
+                        <Form className="d-flex search-mobile me-2">
                             <Form.Control
                                 type="search"
                                 placeholder="Search..."
@@ -129,15 +174,21 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                                 <Search size={25} />
                             </Button>
                         </Form>
-                        <Navbar.Toggle aria-controls="navbarScroll" className='ms-2 border-0 p-0' />
+                        <Navbar.Toggle aria-controls="navbarScroll" className='ms-2 border-0 p-0 navbar-mobile-toggle' />
                     </div>
 
-                    <Navbar.Collapse id="navbarScroll" className="justify-content-end">
-                        <div className="d-flex align-items-center ms-auto">
-                            {checking()}
-                        </div>
-                    </Navbar.Collapse>
+                    <div className="d-none d-lg-flex align-items-center ms-3">
+                        {desktopAuthContent()}
+                    </div>
                 </Container>
+
+                <Navbar.Collapse id="navbarScroll" className="navbar-menu-mobile">
+                    <Container fluid className="px-lg-0">
+                        <div className="d-lg-none mobile-auth-wrapper">
+                            {mobileAuthContent()} 
+                        </div>
+                    </Container>
+                </Navbar.Collapse>
             </Navbar>
             
             <style jsx global>
@@ -173,7 +224,6 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                 /* Search Bar Container PC */
                 .search
                 {
-                    max-width: 500px;
                     width: 100%;
                     display: flex;
                     align-items: center;
@@ -225,6 +275,13 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     transition: all 0.2s ease;
                 }
 
+                /* Navbar Collapse on Mobile (the dropdown container) */
+                .navbar-menu-mobile {
+                    width: 100%;
+                    background: var(--white-color);
+                    border-top: 1px solid var(--border-color);
+                }
+                
                 .navbar-collapse
                 {
                     flex-basis: auto;
@@ -232,19 +289,22 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     align-items: center;
                 }
 
+                /* Login/Signup Buttons (Desktop) */
                 .signin
                 {
                     display: flex;
-                    gap: 1rem;
+                    gap: 0.5rem;
                     align-items: center;
                     justify-content: flex-end;
                     width: 100%;
+                    position: relative;
                 }
 
                 .lgnBtn
                 {
                     padding: 0.5rem 0.2rem;
                     border-radius: 50px;
+                    min-width: 90px;
                     font-size: var(--p-size);
                     text-decoration: none;
                     text-align: center;
@@ -280,7 +340,7 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     background-color: var(--primary-color);
                 }
 
-                /* Dropdown Menu Styling */
+                /* Dropdown Menu Styling (Desktop) */
                 .profile-dropdown-toggle .dropdown-menu
                 {
                     background: var(--white-color);
@@ -294,7 +354,7 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     position: absolute;
                 }
 
-                /* Dropdown Item Styling */
+                /* Dropdown Item Styling (Desktop) */
                 .profile-dropdown-toggle .dropdown-item
                 {
                     display: flex;
@@ -314,6 +374,54 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     color: var(--secondary-color);
                 }
 
+                /* --- Mobile Collapse Styles --- */
+                .navbar-mobile-toggle
+                {
+                    border: 1px solid var(--border-color) !important; 
+                    border-radius: 8px !important;
+                    min-width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .mobile-auth-wrapper
+                {
+                    padding: 0.5rem 0;
+                }
+                .mobile-auth-section
+                {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+                .signin-mobile
+                {
+                    padding: 1rem;
+                }
+                .signin-mobile .lgnBtn
+                {
+                    min-width: unset;
+                    width: 100%;
+                }
+                .mobile-profile-link
+                {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    padding: 0.75rem 1.5rem !important;
+                    border-radius: 0;
+                    text-decoration: none;
+                    color: var(--secondary-color);
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: background-color 0.2s ease;
+                }
+                .mobile-profile-link:hover
+                {
+                    background-color: var(--primary-color);
+                }
+
                 /* Responsivenes */
                 @media (max-width: 992px)
                 {
@@ -321,41 +429,34 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     {
                         padding: 0.75rem 1rem;
                         height: auto;
+                        flex-direction: column; 
                     }
                     .navigation .container-fluid
                     {
-                        flex-wrap: wrap;
+                        padding: 0;
+                        flex-wrap: nowrap;
                     }
                     .navi-title
                     {
                         font-size: var(--h4-size);
                     }
-
-                    .navigation .container-fluid > div:nth-child(2)
+                    .navigation .container-fluid > div:nth-child(3)
                     { 
                         flex-basis: auto;
                         flex-grow: 1;
                         justify-content: flex-end;
                         align-items: center;
                     }
-                    
                     .navbar-collapse
                     {
                         width: 100%;
                         flex-basis: 100%;
-                        margin-top: 0.5rem;
-                        order: 3;
+                        margin-top: 0;
+                        order: 2; /* Put the menu below the main row */
                     }
-                    
                     .search-mobile
                     {
                         margin-right: 0.5rem;
-                    }
-                    
-                    .profile-dropdown-toggle, .profile-dropdown-toggle .dropdown-toggle
-                    {
-                        width: 100%;
-                        text-align: right;
                     }
                 }
             `}
