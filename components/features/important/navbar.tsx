@@ -93,27 +93,50 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
     return (
         <>
             <Navbar expand="lg" className='navigation'>
-                <Container fluid>
+                <Container fluid className='d-flex flex-nowrap align-items-center'>
                     <Navbar.Brand
                         href='/'
-                        className="navi-title"
+                        className="navi-title me-3"
                     >
                         Foma
                     </Navbar.Brand>
                 
-                    <Form className="d-flex search">
-                        <Form.Control
-                            type="search"
-                            placeholder="Searching for something?"
-                            className="me-0"
-                            aria-label="Search"
-                        />
-                        <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
-                            <Search size={25} />
-                        </Button>
-                    </Form>
+                    {/* Searchbar PC */}
+                    <div className="d-none d-lg-flex flex-lg-grow-1 align-items-center justify-content-center mx-3">
+                        <Form className="d-flex search">
+                            <Form.Control
+                                type="search"
+                                placeholder="Searching for something?"
+                                className="me-0"
+                                aria-label="Search"
+                            />
+                            <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
+                                <Search size={25} />
+                            </Button>
+                        </Form>
+                    </div>
 
-                    {checking()}
+                    {/* Searchbar Mobile */}
+                    <div className="d-flex d-lg-none align-items-center flex-grow-1 justify-content-end">
+                        <Form className="d-flex search-mobile">
+                            <Form.Control
+                                type="search"
+                                placeholder="Search..."
+                                className="me-0"
+                                aria-label="Search"
+                            />
+                            <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
+                                <Search size={25} />
+                            </Button>
+                        </Form>
+                        <Navbar.Toggle aria-controls="navbarScroll" className='ms-2 border-0 p-0' />
+                    </div>
+
+                    <Navbar.Collapse id="navbarScroll" className="justify-content-end">
+                        <div className="d-flex align-items-center ms-auto">
+                            {checking()}
+                        </div>
+                    </Navbar.Collapse>
                 </Container>
             </Navbar>
             
@@ -127,33 +150,43 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                 .navigation
                 {
                     background: var(--white-color) !important;
-                    padding: 1rem 2rem;
+                    padding: 0.5rem 2rem;
                     box-shadow: 0 2px 20px var(--shadow-color);
                     position: fixed;
                     top: 0;
                     left: 0;
                     right: 0;
-                    height: 75px; 
+                    min-height: 75px; 
                     z-index: 1000;
                     border-bottom: 1px solid var(--border-color);
-                    display: flex;
-                    align-items: center;
                 }
                 
-                /* Title/Brand */
+                /* Title Brand */
                 .navi-title
                 {
-                    font-size: var(--h2-size);
+                    font-size: var(--h3-size);
                     font-weight: 700;
                     color: var(--secondary-color);
-                    margin-right: 2rem;
+                    white-space: nowrap;
                 }
 
-                /* Search Bar Container */
+                /* Search Bar Container PC */
                 .search
                 {
-                    flex-grow: 1;
                     max-width: 500px;
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                    border-radius: 50px;
+                    overflow: hidden;
+                    background-color: var(--primary-color);
+                    border: 1px solid var(--border-color);
+                }
+
+                /* Search Bar Container Mobile */
+                .search-mobile
+                {
+                    flex-grow: 1;
                     display: flex;
                     align-items: center;
                     border-radius: 50px;
@@ -163,18 +196,19 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                 }
 
                 /* Search Input Field */
-                .search .form-control
+                .search .form-control, .search-mobile .form-control
                 {
                     border: none !important;
                     box-shadow: none !important;
                     background-color: transparent !important;
-                    padding: 0.75rem 1rem;
-                    height: auto;
-                    font-size: 0.95rem;
+                    padding: 0.5rem 1rem;
+                    font-size: 0.9rem;
                     color: var(--secondary-color);
+                    min-width: 0;
+                    height: auto;
                 }
 
-                .search .form-control::placeholder
+                .search .form-control::placeholder, .search-mobile .form-control::placeholder
                 {
                     color: var(--placeholder-color);
                 }
@@ -185,11 +219,17 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     color: var(--secondary-color) !important;
                     border-radius: 0 !important;
                     border-color: transparent;
-                    height: 100%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     transition: all 0.2s ease;
+                }
+
+                .navbar-collapse
+                {
+                    flex-basis: auto;
+                    flex-grow: 0;
+                    align-items: center;
                 }
 
                 .signin
@@ -197,7 +237,8 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     display: flex;
                     gap: 1rem;
                     align-items: center;
-                    position: relative;
+                    justify-content: flex-end;
+                    width: 100%;
                 }
 
                 .lgnBtn
@@ -206,14 +247,8 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     border-radius: 50px;
                     font-size: var(--p-size);
                     text-decoration: none;
-                    min-width: 90px;
-                    display: inline-block;
                     text-align: center;
                     transition: all 0.3s ease;
-                }
-
-                .lgnBtn
-                {
                     background-color: transparent;
                     color: var(--secondary-color);
                     border: 2px solid var(--primary-color);
@@ -236,7 +271,8 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     border: 1px solid var(--border-color);
                     padding: 0.5rem 1rem;
                     border-radius: 8px;
-                    transition: all 0.2s ease;
+                    width: 100%;
+                    text-align: right;
                 }
                 
                 .profile-dropdown-toggle .dropdown-toggle:hover
@@ -253,8 +289,9 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     min-width: 200px;
                     z-index: 1001;
                     border: 1px solid var(--border-color);
-                    margin-top: 0.75rem !important;
-                    padding: 0.5rem 0;
+                    margin-top: 1rem !important;
+                    padding: 0.8rem 0;
+                    position: absolute;
                 }
 
                 /* Dropdown Item Styling */
@@ -268,8 +305,6 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     transition: all 0.3s ease;
                     color: var(--secondary-color);
                     text-decoration: none;
-                    border-radius: 12px;
-                    margin: 0.2rem 0.5rem;
                     font-weight: 500;
                 }
 
@@ -287,20 +322,40 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                         padding: 0.75rem 1rem;
                         height: auto;
                     }
-                    .search
+                    .navigation .container-fluid
                     {
-                        width: 100%;
-                        max-width: none;
-                        order: 3;
-                        margin-top: 0.5rem;
+                        flex-wrap: wrap;
                     }
+                    .navi-title
+                    {
+                        font-size: var(--h4-size);
+                    }
+
+                    .navigation .container-fluid > div:nth-child(2)
+                    { 
+                        flex-basis: auto;
+                        flex-grow: 1;
+                        justify-content: flex-end;
+                        align-items: center;
+                    }
+                    
                     .navbar-collapse
                     {
-                        order: 4;
+                        width: 100%;
+                        flex-basis: 100%;
+                        margin-top: 0.5rem;
+                        order: 3;
                     }
-                    .navbar-toggler
+                    
+                    .search-mobile
                     {
                         margin-right: 0.5rem;
+                    }
+                    
+                    .profile-dropdown-toggle, .profile-dropdown-toggle .dropdown-toggle
+                    {
+                        width: 100%;
+                        text-align: right;
                     }
                 }
             `}
