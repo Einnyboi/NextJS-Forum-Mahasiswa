@@ -193,16 +193,13 @@ a {
 
 .welcome-text {
     color: #6D7275;
-    font-size: 1rem;
-    margin-bottom: 1rem;
 }
 
 /* Thread Card */
 .thread-card {
-    background: var(--white-color);
+    background: #ffffff;
     padding: 1.8rem;
     border-radius: 16px;
-    margin-bottom: 1.5rem;
     border: 1px solid rgba(0,0,0,0.08);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative;
@@ -218,7 +215,7 @@ a {
 
 .thread-header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 1rem; font-size: 0.85rem;
+    margin-bottom: 1.5rem; font-size: 0.85rem;
 }
 
 .author-info { display: flex; align-items: center; gap: 10px; }
@@ -291,18 +288,26 @@ a {
 
 /* === MODAL STYLES === */
 .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 2000; backdrop-filter: blur(4px); animation: fadeIn 0.2s ease-out;
+    position: fixed; 
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    z-index: 9999; 
+    animation: fadeIn 0.2s ease-out;
 }
+
 .modal-content {
-    background: var(--white-color);
+    background: #ffffff !important;
     width: 100%; max-width: 500px;
     padding: 2rem; border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    position: relative; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative; 
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 .modal-title { font-size: 1.5rem; font-weight: 700; margin: 0; color: var(--secondary-color); }
 .btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; padding: 0; line-height: 1; }
@@ -369,6 +374,189 @@ a {
     }
 }
 
+/* === RIGHT PANEL CARD (NEW) === */
+.right-panel-card {
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 120px);
+    background-color: var(--white-color);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    overflow-y: auto;
+    width: 100%;
+}
+
+/* === HERO CARD REDESIGN === */
+.hero-card {
+    background: #ffffff;
+    color: #000000;
+    border-radius: 24px;
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.hero-search-container {
+    display: none; /* Hide search container as requested */
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 60%;
+}
+
+.hero-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+    color: var(--secondary-color);
+}
+
+.hero-subtitle {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.hero-illustration {
+    position: absolute;
+    right: 2rem;
+    bottom: 0;
+    width: 35%;
+    height: 80%;
+    background-image: url('https://illustrations.popsy.co/amber/surr-working.svg'); /* Placeholder Illustration */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom right;
+    z-index: 1;
+    opacity: 0.9;
+}
+
+.community-pills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: auto;
+    position: relative;
+    z-index: 2;
+}
+
+.community-pill {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    color: var(--secondary-color);
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.community-pill:hover {
+    background: var(--secondary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.community-pill.active {
+    background: var(--error-red);
+    color: white;
+    font-weight: 600;
+    border-color: var(--error-red);
+}
+
+/* === HERO CAROUSEL & LAYOUT === */
+.hero-carousel-container {
+    position: absolute;
+    right: 2rem;
+    bottom: 2rem;
+    top: 2rem;
+    width: 45%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.hero-carousel-card {
+    background-color: #0c120c; /* Black background */
+    color: white;
+    border-radius: 20px;
+    padding: 1.2rem;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.hero-carousel-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.carousel-text-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.carousel-community-name {
+    font-family: 'Permanent Marker', cursive, var(--main-font); /* Fallback to main font if not loaded */
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+}
+
+.carousel-community-desc {
+    font-size: 0.85rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    font-family: 'Patrick Hand', cursive, var(--secondary-font); /* Handwriting style */
+}
+
+.carousel-stats {
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: 500;
+}
+
+.carousel-community-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    background-size: cover;
+    background-position: center;
+    border: 4px solid #ecebf3; /* White border */
+    flex-shrink: 0;
+}
+
+/* Push Explore button to the right - REMOVED as requested */
+.community-pills-container {
+    justify-content: flex-start; /* Default alignment */
 @media (max-width: 480px)
 {
     .sidebar-link

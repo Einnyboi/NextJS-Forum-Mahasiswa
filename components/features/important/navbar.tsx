@@ -22,8 +22,7 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
         onNavChange('login'); 
     }
 
-    const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) =>
-    {
+    const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         onNavChange('signup');
     }
@@ -115,8 +114,7 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                 </Nav>
             );
         }
-        else
-        {
+        else {
             return (
                 <div className="d-flex flex-column signin-mobile p-3 w-100">
                     <Button 
@@ -125,7 +123,7 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     >
                         Login
                     </Button>
-                    <Button 
+                    <Button
                         className='lgnBtn'
                         onClick={handleSignupClick}
                     >
@@ -190,9 +188,9 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     </Container>
                 </Navbar.Collapse>
             </Navbar>
-            
+
             <style jsx global>
-            {`
+                {`
                 body
                 {
                     padding-top: 80px !important;
