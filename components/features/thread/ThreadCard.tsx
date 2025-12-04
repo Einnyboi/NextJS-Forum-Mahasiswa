@@ -219,23 +219,34 @@ export const ThreadCard = ({ thread, clickable = true, hideCommentAction = false
             {/* --- FOOTER ACTIONS (VOTING & COMMENTS) --- */}
             <div className="thread-footer d-flex gap-4 text-muted small fw-bold align-items-center">
 
-                {/* Voting Section (Moved to Footer) */}
-                <div className="d-flex align-items-center gap-1 bg-light rounded-pill px-2 py-1 border">
-                    <button
-                        onClick={handleUpvote}
-                        className={`btn btn-sm p-0 ${userVote === 'up' ? 'text-success' : 'text-muted'}`}
-                        style={{ border: 'none', background: 'none', lineHeight: 1 }}
-                    >
-                        <ThumbsUp size={18} fill={userVote === 'up' ? "currentColor" : "none"} />
-                    </button>
-                    <span className="mx-1" style={{ minWidth: '15px', textAlign: 'center' }}>{voteScore}</span>
-                    <button
-                        onClick={handleDownvote}
-                        className={`btn btn-sm p-0 ${userVote === 'down' ? 'text-danger' : 'text-muted'}`}
-                        style={{ border: 'none', background: 'none', lineHeight: 1 }}
-                    >
-                        <ThumbsDown size={18} fill={userVote === 'down' ? "currentColor" : "none"} />
-                    </button>
+                {/* Voting Section (Separated Upvotes and Downvotes) */}
+                <div className="d-flex align-items-center gap-3 bg-light rounded-pill px-3 py-1 border">
+                    {/* Upvote Section */}
+                    <div className="d-flex align-items-center gap-2">
+                        <button
+                            onClick={handleUpvote}
+                            className={`btn btn-sm p-0 ${userVote === 'up' ? 'text-success' : 'text-muted'}`}
+                            style={{ border: 'none', background: 'none', lineHeight: 1 }}
+                        >
+                            <ThumbsUp size={18} fill={userVote === 'up' ? "currentColor" : "none"} />
+                        </button>
+                        <span className="small fw-bold">{upvotes}</span>
+                    </div>
+
+                    {/* Divider */}
+                    <div style={{ width: '1px', height: '16px', backgroundColor: '#dee2e6' }}></div>
+
+                    {/* Downvote Section */}
+                    <div className="d-flex align-items-center gap-2">
+                        <button
+                            onClick={handleDownvote}
+                            className={`btn btn-sm p-0 ${userVote === 'down' ? 'text-danger' : 'text-muted'}`}
+                            style={{ border: 'none', background: 'none', lineHeight: 1 }}
+                        >
+                            <ThumbsDown size={18} fill={userVote === 'down' ? "currentColor" : "none"} />
+                        </button>
+                        <span className="small fw-bold">{downvotes}</span>
+                    </div>
                 </div>
 
                 {/* Comments */}
