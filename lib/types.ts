@@ -18,7 +18,8 @@ export type Community = {
   id: string;
   name: string; // Display name (can have duplicates)
   handle: string; // Unique identifier like @community-handle
-  imageUrl: string;
+  imageUrl: string; // Profile image
+  bannerUrl?: string; // Banner image (optional)
   description?: string; // Optional: Good for the header
   memberCount?: number; // Optional: Good for sorting popularity
   upvotes?: number; // NEW: Total upvotes

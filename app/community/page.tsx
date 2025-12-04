@@ -53,81 +53,130 @@ const CommunityPage = () => {
         api.communities.getAll().then(data => setCommunities(data));
     };
 
-    const handleLoginSuccess = () => {
-        const sessionData = localStorage.getItem('userSession');
-        if (sessionData) {
-            const session = JSON.parse(sessionData);
-            setUser({
-                email: session.email,
-                role: session.role,
-                fullName: session.fullName
-            });
-        }
-        setCurrentView('community');
-    };
-
-    const renderContent = () => {
-        if (currentView === 'login') {
-            return <LoginForm onLoginSuccess={handleLoginSuccess} />;
-        }
-        if (currentView === 'signup') {
-            return <SignupForm />;
-        }
-
-        return (
-            <>
-                <div className="d-flex justify-content-between align-items-center mb-4 welcome-banner">
-                    <div>
-                        <h1 className="welcome-title">Discover Communities</h1>
-                        <p className="welcome-text">Join communities that match your interests.</p>
-                    </div>
-
-                    {user && (
-                        <button
-                            className="btn-create-test"
-                            onClick={() => setShowCreateModal(true)}
-                        >
-                            + Create Community
-                        </button>
-                    )}
-                </div>
-
-                {isLoading ? (
-                    <p className="state-message">Loading communities...</p>
-                ) : communities.length === 0 ? (
-                    <div className="state-message">
-                        <p>No communities found.</p>
-                    </div>
-                ) : (
-                    <div className="d-flex flex-column gap-3">
-                        {communities.map((community) => (
-                            <CommunityCard
-                                key={community.id}
-                                community={community}
-                                isJoined={false}
-                            />
-                        ))}
-                    </div>
-                )}
-            </>
-        );
-    };
-
     return (
         <div>
             <Navbar onNavChange={(view) => {
                 if (view === 'home') router.push('/');
-                else if (view === 'community') setCurrentView('community');
-                else if (view === 'event') router.push('/event');
-                else if (view === 'login') setCurrentView('login');
-                else if (view === 'signup') setCurrentView('signup');
-            }} isLoggedIn={!!user} userRole={user?.role} userName={user?.fullName} />
+                else if (view === 'community') router.push('/community');
+                // Add other routes if needed
+            }} isLoggedIn={!!user} userRole={user?.role} />
 
             <div className="main-dashboard-layout">
-                <Sidebar activeView="community" onMenuClick={(view) => router.push(view === 'home' ? '/' : `/${view}`)} />
+                <Sidebar activeView="community" onMenuClick={(view) => {
+                    if (view === 'home') router.push('/');
+                    else if (view === 'community') router.push('/community');
+                }} />
 
                 <div className="main-content">
-                    {renderContent()}
+                    <div className="community-header">
+                        <div className="header-content">
+                            <h1>Explore Communities</h1>
+                            <p>Find and join communities that match your interests</p>
+                        </div>
+
+                        {user && (
+                            <button
+                                className="create-community-btn"
+                                onClick={() => setShowCreateModal(true)}
+                            >
+                                <Plus size={20} />
+                                Create Community
+                            </button>
+                        )}
+                    </div>
+
+                    {isLoading ? (
+                        <p className="state-message">Memuat komunitas...</p>
+                    ) : communities.length === 0 ? (
+                        <div className="state-message">
+                            <p>Belum ada komunitas.</p>
+                        </div>
+                    ) : (
+                        <div className="communities-grid">
+                            {communities.map((community) => (
+                                <CommunityCard
+                                    key={community.id}
+                                    community={community}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    <style jsx>{`
+                        .main-content {
+                            padding-top: 28px;
+                        }
+
+                        .community-header {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-bottom: 40px;
+                        }
+
+                        .header-content h1 {
+                            font-size: 2.5rem;
+                            font-weight: 800;
+                            color: #1a202c;
+                            margin: 0 0 8px 0;
+                            letter-spacing: -0.5px;
+                        }
+
+                        .header-content p {
+                            color: #718096;
+                            margin: 0;
+                            font-size: 1rem;
+                            font-weight: 400;
+                        }
+
+                        .create-community-btn {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            padding: 12px 24px;
+                            background: #dc3545;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            font-size: 1rem;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+                        }
+
+                        .create-community-btn:hover {
+                            background: #c82333;
+                            transform: translateY(-2px);
+                            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+                        }
+
+                        .communities-grid {
+                            display: grid;
+                            grid-template-columns: repeat(3, 1fr);
+                            gap: 24px;
+                            position: relative;
+                            z-index: 1;
+                        }
+
+                        @media (max-width: 1200px) {
+                            .communities-grid {
+                                grid-template-columns: repeat(2, 1fr);
+                            }
+                        }
+
+                        @media (max-width: 768px) {
+                            .community-header {
+                                flex-direction: column;
+                                align-items: flex-start;
+                                gap: 16px;
+                            }
+
+                            .communities-grid {
+                                grid-template-columns: 1fr;
+                            }
+                        }
+                    `}</style>
                 </div>
             </div>
 

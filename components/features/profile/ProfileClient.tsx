@@ -4,19 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProfileHeader from './ProfileHeader';
 import CommunityList from './CommunityList';
-import EventList from './EventList';
-import ProfilePosts from './ProfilePosts';
-import CreatePostForm from '@/components/features/posts/CreatePostForm';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import { User, Community, Event, Post } from '@/lib/types';
+import { User, Community, Post } from '@/lib/types';
 
 export default function ProfileClient() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [communities, setCommunities] = useState<Community[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,7 +42,6 @@ export default function ProfileClient() {
           } else {
             setUser(data.user ?? null);
             setCommunities(data.communities ?? []);
-            setEvents(data.events ?? []);
             setPosts(data.posts ?? []);
           }
         })
@@ -63,17 +58,18 @@ export default function ProfileClient() {
   if (!user) return <div className="p-4">No user data available.</div>;
 
   return (
-    <Row>
-      <Col lg={8}>
-        <ProfileHeader user={user} />
-        <CreatePostForm user={user} communities={communities} />
-        <ProfilePosts posts={posts} />
-      </Col>
-
-      <Col lg={4}>
+    <>
+      <ProfileHeader user={user} />
+      
+      <div className="communities-section">
         <CommunityList communities={communities} />
-        <EventList events={events} />
-      </Col>
-    </Row>
+      </div>
+
+      <style jsx>{`
+        .communities-section {
+          max-width: 100%;
+        }
+      `}</style>
+    </>
   );
 }

@@ -44,7 +44,9 @@ export interface CommunityData {
   name: string;
   description: string;
   imageUrl: string;
+  bannerUrl?: string;
   members?: string[];
+  memberCount?: number;
   upvotes?: number;
   downvotes?: number;
   votedBy?: { [userId: string]: 'up' | 'down' };
@@ -239,14 +241,104 @@ export const api = {
       } catch (e) { return null; }
     },
 
-    join: async (u: string, c: string) => {
-      try { await updateDoc(doc(db, "communities", c), { members: arrayUnion(u) }); return true; }
-      catch (e) { return false; }
+    join: async (communityId: string, userEmail: string) => {
+      try {
+        console.log('[JOIN] Starting join process:', { communityId, userEmail });
+        const communityRef = doc(db, "communities", communityId);
+        const communitySnap = await getDoc(communityRef);
+        
+        if (!communitySnap.exists()) {
+          console.error('[JOIN] Community not found:', communityId);
+          return false;
+        }
+        
+        const data = communitySnap.data();
+        const members = data.members || [];
+        console.log('[JOIN] Current members:', members);
+        
+        // Check if already a member
+        if (members.includes(userEmail)) {
+          console.log('[JOIN] User already a member');
+          return true;
+        }
+        
+        // Update community
+        console.log('[JOIN] Updating community document...');
+        await updateDoc(communityRef, { 
+          members: arrayUnion(userEmail),
+          memberCount: members.length + 1
+        });
+        console.log('[JOIN] Community updated successfully. New member count:', members.length + 1);
+        
+        // Update user's joined communities
+        const usersQuery = query(collection(db, "users"), where("email", "==", userEmail));
+        const userSnap = await getDocs(usersQuery);
+        
+        if (!userSnap.empty) {
+          const userDoc = userSnap.docs[0];
+          console.log('[JOIN] Updating user document:', userDoc.id);
+          await updateDoc(doc(db, "users", userDoc.id), {
+            joinedCommunityIds: arrayUnion(communityId)
+          });
+          console.log('[JOIN] User document updated successfully');
+        } else {
+          console.warn('[JOIN] User document not found for email:', userEmail);
+        }
+        
+        console.log('[JOIN] Join process completed successfully');
+        return true; 
+      }
+      catch (e) { 
+        console.error('[JOIN] Error joining community:', e);
+        return false; 
+      }
     },
 
-    leave: async (u: string, c: string) => {
-      try { await updateDoc(doc(db, "communities", c), { members: arrayRemove(u) }); return true; }
-      catch (e) { return false; }
+    leave: async (communityId: string, userEmail: string) => {
+      try {
+        console.log('[LEAVE] Starting leave process:', { communityId, userEmail });
+        const communityRef = doc(db, "communities", communityId);
+        const communitySnap = await getDoc(communityRef);
+        
+        if (!communitySnap.exists()) {
+          console.error('[LEAVE] Community not found:', communityId);
+          return false;
+        }
+        
+        const data = communitySnap.data();
+        const members = data.members || [];
+        console.log('[LEAVE] Current members:', members);
+        
+        // Update community
+        console.log('[LEAVE] Updating community document...');
+        await updateDoc(communityRef, { 
+          members: arrayRemove(userEmail),
+          memberCount: Math.max(0, members.length - 1)
+        });
+        console.log('[LEAVE] Community updated successfully. New member count:', Math.max(0, members.length - 1));
+        
+        // Update user's joined communities
+        const usersQuery = query(collection(db, "users"), where("email", "==", userEmail));
+        const userSnap = await getDocs(usersQuery);
+        
+        if (!userSnap.empty) {
+          const userDoc = userSnap.docs[0];
+          console.log('[LEAVE] Updating user document:', userDoc.id);
+          await updateDoc(doc(db, "users", userDoc.id), {
+            joinedCommunityIds: arrayRemove(communityId)
+          });
+          console.log('[LEAVE] User document updated successfully');
+        } else {
+          console.warn('[LEAVE] User document not found for email:', userEmail);
+        }
+        
+        console.log('[LEAVE] Leave process completed successfully');
+        return true; 
+      }
+      catch (e) { 
+        console.error('[LEAVE] Error leaving community:', e);
+        return false; 
+      }
     },
 
     upvote: async (communityId: string, userId: string) => {

@@ -16,10 +16,9 @@ interface AppNavbarProps
 {
     onNavChange: (view: string) => void;
     isLoggedIn: boolean;
-    hideSearchInput?: boolean; 
 }
 
-function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavbarProps) 
+function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps) 
 {
     const router = useRouter();
     const pathname = usePathname(); // Get current path
@@ -44,6 +43,7 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
             router.push('/search');
         }
     };
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
@@ -51,56 +51,68 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
         onNavChange('login'); 
     }
 
-    const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) =>
+    {
         e.preventDefault();
         onNavChange('signup');
     }
 
-    const handleLogout = () =>
-    {
+    const handleLogout = () => {
         localStorage.removeItem('userSession');
         window.location.href = '/';
     };
 
-    const desktopAuthContent = () =>
+    const handleLogoutClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowLogoutModal(true);
+    };
+
+    const confirmLogout = () => {
+        setShowLogoutModal(false);
+        handleLogout();
+    };
+
+    const cancelLogout = () => {
+        setShowLogoutModal(false);
+    };
+
+    const checking = () =>
     {
         if (isLoggedIn)
         {
             return (
-                <NavDropdown 
-                    title="User" 
-                    id="navbarScrollingDropdown" 
-                    align="end"
-                    className="profile-dropdown-toggle"
-                >
-                    <NavDropdown.Item href="/profile">
-                        <User size={18} className="me-2" />
-                        Profile
-                    </NavDropdown.Item>
-                    <NavDropdown.Item href="/user-history">
-                        <History size={18} className="me-2" />
-                        History
-                    </NavDropdown.Item>
-                    <NavDropdown.Divider />
-                    <NavDropdown.Item 
-                        as="button"
-                        onClick={(e: React.MouseEvent) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleLogout();
-                        }}
-                        type="button"
+                <Nav className="my-2 my-lg-0 profile-dropdown-toggle">
+                    <NavDropdown 
+                        title="User" 
+                        id="navbarScrollingDropdown" 
+                        align="end"
                     >
-                        <LogOut size={18} className="me-2" />
-                        Logout
-                    </NavDropdown.Item>
-                </NavDropdown>
+                        <NavDropdown.Item href="/profile">
+                            <User size={18} className="me-2" />
+                            Profile
+                        </NavDropdown.Item>
+                        <NavDropdown.Item href="/user-history">
+                            <History size={18} className="me-2" />
+                            History
+                        </NavDropdown.Item>
+                        <NavDropdown.Divider />
+                        <NavDropdown.Item 
+                            as="button"
+                            onClick={handleLogoutClick}
+                            type="button"
+                        >
+                            <LogOut size={18} className="me-2" />
+                            Logout
+                        </NavDropdown.Item>
+                    </NavDropdown>
+                </Nav>
             );
         }
         else
         {
             return (
-                <div className="d-flex align-items-center signin"> 
+                <Nav className="d-flex align-items-center signin">
                     <Button 
                         className='lgnBtn'
                         onClick={handleLoginClick}
@@ -113,11 +125,11 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                     >
                         Sign Up
                     </Button>
-                </div>
+                </Nav>
             );
         }
     };
-    
+
     const mobileAuthContent = () =>
     {
         if (isLoggedIn)
@@ -132,7 +144,7 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                         <History size={18} className="me-2" />
                         History
                     </Nav.Link>
-                    <Nav.Link 
+                    <Nav.Link
                         as="button"
                         onClick={handleLogout}
                         className="mobile-profile-link logout"
@@ -166,7 +178,7 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
     return (
         <>
             <Navbar expand="lg" className='navigation'>
-                <Container fluid className='d-flex align-items-center **justify-content-between**'> 
+                <Container fluid className='d-flex align-items-center justify-content-between'>
                     <Navbar.Brand
                         href='/'
                         className="navi-title me-3"
@@ -174,73 +186,77 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                         Foma
                     </Navbar.Brand>
 
-                    {/* Desktop Search Bar */}
-                    <div className="d-none d-lg-flex **flex-lg-grow-1** align-items-center **mx-auto**" style={{ maxWidth: '500px' }}>
-                        <Form className="d-flex search w-100" 
-                            onSubmit={handleSearchSubmit}
-                        >
+                    {/* Desktop Search Bar & Auth - Hidden on Mobile */}
+                    <div className="d-none d-lg-flex flex-lg-grow-1 align-items-center mx-auto" style={{ maxWidth: '500px' }}>
+                        <Form className="d-flex search w-100">
                             <Form.Control
                                 type="search"
                                 placeholder="Searching for something?"
                                 className="me-0"
                                 aria-label="Search"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onClick={handleSearchAction}
-                                onFocus={handleSearchAction}
                             />
-                            <Button 
-                                type="submit"
-                                variant="outline-success" 
-                                className="search-button p-2 flex items-center justify-center" 
-                                style={{ width: '40px' }}
-                            >
+                            <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
                                 <Search size={25} />
                             </Button>
                         </Form>
                     </div>
 
-                    {/* Mobile Search Bar */}
-                    <div className="d-flex d-lg-none align-items-center flex-grow-1 justify-content-end">
-                        <Form className="d-flex search-mobile" onSubmit={handleSearchSubmit}>
-                            <Form.Control
-                                type="search"
-                                placeholder="Search..."
-                                className="me-0"
-                                aria-label="Search"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onClick={handleSearchAction}
-                                onFocus={handleSearchAction}
-                            />
-                            <Button 
-                                type="submit"
-                                variant="outline-success" 
-                                className="search-button p-2 flex items-center justify-center" 
-                                style={{ width: '40px' }}
-                            >
-                                <Search size={25} />
-                            </Button>
-                        </Form>
-                        <Navbar.Toggle aria-controls="navbarScroll" className='ms-2 border-0 p-0 navbar-mobile-toggle' />
+                    {/* Desktop Auth */}
+                    <div className="d-none d-lg-flex align-items-center ms-3">
+                        {checking()}
                     </div>
 
-                    <div className="d-none d-lg-flex align-items-center **ms-3**">
-                        {desktopAuthContent()}
-                    </div>
+                    {/* Mobile Hamburger Toggle */}
+                    <Navbar.Toggle aria-controls="navbarScroll" className='ms-2 border-0 p-0 navbar-mobile-toggle' />
                 </Container>
 
+                {/* Mobile Collapse Menu */}
                 <Navbar.Collapse id="navbarScroll" className="navbar-menu-mobile">
                     <Container fluid className="px-lg-0">
+                        {/* Mobile Search */}
+                        <Form className="d-flex d-lg-none search w-100 my-2">
+                            <Form.Control
+                                type="search"
+                                placeholder="Searching for something?"
+                                className="me-0"
+                                aria-label="Search"
+                            />
+                            <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
+                                <Search size={25} />
+                            </Button>
+                        </Form>
+
+                        {/* Mobile Auth Content */}
                         <div className="d-lg-none mobile-auth-wrapper">
-                            {mobileAuthContent()} 
+                            {mobileAuthContent()}
                         </div>
                     </Container>
                 </Navbar.Collapse>
             </Navbar>
 
+            {/* Logout Confirmation Modal */}
+            {showLogoutModal && (
+                <div className="logout-modal-overlay" onClick={cancelLogout}>
+                    <div className="logout-modal" onClick={(e) => e.stopPropagation()}>
+                        <button className="modal-close" onClick={cancelLogout}>
+                            <X size={20} />
+                        </button>
+                        <h3>Leaving the conversation early?</h3>
+                        <p>Are you sure you want to log out? We'll miss you!</p>
+                        <div className="modal-actions">
+                            <button className="btn-cancel" onClick={cancelLogout}>
+                                Stay
+                            </button>
+                            <button className="btn-logout" onClick={confirmLogout}>
+                                Log Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             <style jsx global>
-                {`
+            {`
                 body
                 {
                     padding-top: 80px !important;
@@ -249,30 +265,33 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                 .navigation
                 {
                     background: var(--white-color) !important;
-                    padding: 0.5rem 2rem;
+                    padding: 1rem 2rem;
                     box-shadow: 0 2px 20px var(--shadow-color);
                     position: fixed;
                     top: 0;
                     left: 0;
                     right: 0;
-                    min-height: 75px; 
+                    height: 75px; 
                     z-index: 1000;
                     border-bottom: 1px solid var(--border-color);
+                    display: flex;
+                    align-items: center;
                 }
                 
-                /* Title Brand */
+                /* Title/Brand */
                 .navi-title
                 {
-                    font-size: var(--h3-size);
+                    font-size: var(--h2-size);
                     font-weight: 700;
                     color: var(--secondary-color);
-                    white-space: nowrap;
+                    margin-right: 2rem;
                 }
 
-                /* Search Bar Container PC */
+                /* Search Bar Container */
                 .search
                 {
                     width: 100%;
+                    max-width: 500px;
                     display: flex;
                     align-items: center;
                     border-radius: 50px;
@@ -285,6 +304,7 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                 .search-mobile
                 {
                     flex-grow: 1;
+                    max-width: 500px;
                     display: flex;
                     align-items: center;
                     border-radius: 50px;
@@ -294,19 +314,18 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                 }
 
                 /* Search Input Field */
-                .search .form-control, .search-mobile .form-control
+                .search .form-control
                 {
                     border: none !important;
                     box-shadow: none !important;
                     background-color: transparent !important;
-                    padding: 0.5rem 1rem;
-                    font-size: 0.9rem;
-                    color: var(--secondary-color);
-                    min-width: 0;
+                    padding: 0.75rem 1rem;
                     height: auto;
+                    font-size: 0.95rem;
+                    color: var(--secondary-color);
                 }
 
-                .search .form-control::placeholder, .search-mobile .form-control::placeholder
+                .search .form-control::placeholder
                 {
                     color: var(--placeholder-color);
                 }
@@ -317,34 +336,18 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                     color: var(--secondary-color) !important;
                     border-radius: 0 !important;
                     border-color: transparent;
+                    height: 100%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     transition: all 0.2s ease;
                 }
 
-                /* Navbar Collapse on Mobile (the dropdown container) */
-                .navbar-menu-mobile {
-                    width: 100%;
-                    background: var(--white-color);
-                    border-top: 1px solid var(--border-color);
-                }
-                
-                .navbar-collapse
-                {
-                    flex-basis: auto;
-                    flex-grow: 0;
-                    align-items: center;
-                }
-
-                /* Login/Signup Buttons (Desktop) */
                 .signin
                 {
                     display: flex;
-                    gap: 0.5rem;
+                    gap: 1rem;
                     align-items: center;
-                    justify-content: flex-end;
-                    width: 100%;
                     position: relative;
                 }
 
@@ -352,11 +355,16 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                 {
                     padding: 0.5rem 0.2rem;
                     border-radius: 50px;
-                    min-width: 90px;
                     font-size: var(--p-size);
                     text-decoration: none;
+                    min-width: 90px;
+                    display: inline-block;
                     text-align: center;
                     transition: all 0.3s ease;
+                }
+
+                .lgnBtn
+                {
                     background-color: transparent;
                     color: var(--secondary-color);
                     border: 2px solid var(--primary-color);
@@ -379,8 +387,7 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                     border: 1px solid var(--border-color);
                     padding: 0.5rem 1rem;
                     border-radius: 8px;
-                    width: 100%;
-                    text-align: right;
+                    transition: all 0.2s ease;
                 }
                 
                 .profile-dropdown-toggle .dropdown-toggle:hover
@@ -388,7 +395,7 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                     background-color: var(--primary-color);
                 }
 
-                /* Dropdown Menu Styling (Desktop) */
+                /* Dropdown Menu Styling */
                 .profile-dropdown-toggle .dropdown-menu
                 {
                     background: var(--white-color);
@@ -397,22 +404,24 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                     min-width: 200px;
                     z-index: 1001;
                     border: 1px solid var(--border-color);
-                    margin-top: 1rem !important;
-                    padding: 0.8rem 0;
-                    position: absolute;
+                    margin-top: 0.75rem !important;
+                    padding: 0.5rem;
+                    overflow: hidden;
                 }
 
-                /* Dropdown Item Styling (Desktop) */
+                /* Dropdown Item Styling */
                 .profile-dropdown-toggle .dropdown-item
                 {
                     display: flex;
                     align-items: center;
                     gap: 0.8rem;
-                    padding: 0.8rem 1.2rem;
+                    padding: 0.8rem 1rem;
                     cursor: pointer;
                     transition: all 0.3s ease;
                     color: var(--secondary-color);
                     text-decoration: none;
+                    border-radius: 8px;
+                    margin: 0.2rem 0;
                     font-weight: 500;
                 }
 
@@ -479,23 +488,13 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                     {
                         padding: 0.75rem 1rem;
                         height: auto;
-                        flex-direction: column; 
                     }
-                    .navigation .container-fluid
+                    .search
                     {
-                        padding: 0;
-                        flex-wrap: nowrap;
-                    }
-                    .navi-title
-                    {
-                        font-size: var(--h4-size);
-                    }
-                    .navigation .container-fluid > div:nth-child(3)
-                    { 
-                        flex-basis: auto;
-                        flex-grow: 1;
-                        justify-content: flex-end;
-                        align-items: center;
+                        width: 100%;
+                        max-width: none;
+                        order: 3;
+                        margin-top: 0.5rem;
                     }
                     .navbar-collapse
                     {
@@ -503,8 +502,9 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                         flex-basis: 100%;
                         margin-top: 0;
                         order: 2;
+                        order: 4;
                     }
-                    .search-mobile
+                    .navbar-toggler
                     {
                         margin-right: 0.5rem;
                     }
@@ -527,6 +527,124 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                         margin-right: auto !important;
                         flex-grow: 1;
                     }
+                }
+
+                /* Logout Modal Styles */
+                .logout-modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(12, 18, 12, 0.6);
+                    backdrop-filter: blur(4px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 2000;
+                    animation: fadeIn 0.2s ease;
+                }
+
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                    }
+                    to {
+                        opacity: 1;
+                    }
+                }
+
+                .logout-modal {
+                    background: #ecebf3;
+                    border-radius: 16px;
+                    padding: 32px;
+                    max-width: 400px;
+                    width: 90%;
+                    box-shadow: 0 20px 60px rgba(12, 18, 12, 0.3);
+                    position: relative;
+                    animation: slideUp 0.3s ease;
+                }
+
+                @keyframes slideUp {
+                    from {
+                        transform: translateY(20px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                .modal-close {
+                    position: absolute;
+                    top: 16px;
+                    right: 16px;
+                    background: transparent;
+                    border: none;
+                    color: #6c757d;
+                    cursor: pointer;
+                    padding: 4px;
+                    border-radius: 4px;
+                    transition: all 0.2s;
+                }
+
+                .modal-close:hover {
+                    background: #d5d4dc;
+                    color: #0c120c;
+                }
+
+                .logout-modal h3 {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: #0c120c;
+                    margin: 0 0 12px 0;
+                }
+
+                .logout-modal p {
+                    color: #6c757d;
+                    margin: 0 0 24px 0;
+                    font-size: 1rem;
+                    line-height: 1.5;
+                }
+
+                .modal-actions {
+                    display: flex;
+                    gap: 12px;
+                    justify-content: flex-end;
+                }
+
+                .btn-cancel,
+                .btn-logout {
+                    padding: 10px 24px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    font-size: 0.95rem;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    border: none;
+                }
+
+                .btn-cancel {
+                    background: white;
+                    color: #0c120c;
+                    border: 2px solid #d5d4dc;
+                }
+
+                .btn-cancel:hover {
+                    background: #f5f5f5;
+                    border-color: #c7d6d5;
+                }
+
+                .btn-logout {
+                    background: #dc3545;
+                    color: white;
+                }
+
+                .btn-logout:hover {
+                    background: #c82333;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
                 }
             `}
             </style>

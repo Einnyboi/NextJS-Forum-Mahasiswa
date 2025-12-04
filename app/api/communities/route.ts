@@ -17,12 +17,16 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, handle, description, imageUrl } = body;
+    console.log('Received body:', { ...body, imageUrl: body.imageUrl?.substring(0, 50), bannerUrl: body.bannerUrl?.substring(0, 50) });
+    
+    const { name, handle, description, imageUrl, bannerUrl } = body;
 
     if (!name || !handle || !imageUrl) {
+      console.log('Validation failed:', { name: !!name, handle: !!handle, imageUrl: !!imageUrl });
       return NextResponse.json({ error: "Name, handle, and Image URL are required" }, { status: 400 });
     }
 
+    console.log('Checking for duplicate handle:', handle);
     // Check if handle already exists
     const existingCommunities = await dbService.communities.getAll();
     const handleExists = existingCommunities.some(
@@ -30,28 +34,44 @@ export async function POST(request: Request) {
     );
 
     if (handleExists) {
+      console.log('Handle already exists:', handle);
       return NextResponse.json(
         { error: "This handle is already taken. Please choose another one." },
         { status: 409 }
       );
     }
 
+    console.log('Creating community in Firestore...');
     // Add to Firestore
-    const docRef = await addDoc(collection(db, 'communities'), {
+    const communityData: any = {
       name,
       handle: handle.toLowerCase(),
       description: description || "",
       imageUrl,
       memberCount: 0,
       createdAt: new Date().toISOString()
-    });
+    };
+
+    // Add bannerUrl only if provided
+    if (bannerUrl) {
+      communityData.bannerUrl = bannerUrl;
+    }
+
+    const docRef = await addDoc(collection(db, 'communities'), communityData);
+    console.log('Community created with ID:', docRef.id);
 
     return NextResponse.json({ 
       message: "Community created!", 
       id: docRef.id 
     });
 
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to create community" }, { status: 500 });
+  } catch (error: any) {
+    console.error('Error creating community:', error);
+    console.error('Error message:', error?.message);
+    console.error('Error stack:', error?.stack);
+    return NextResponse.json({ 
+      error: "Failed to create community", 
+      details: error?.message || 'Unknown error'
+    }, { status: 500 });
   }
 }
