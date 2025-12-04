@@ -1,13 +1,16 @@
 'use client'
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import { Search, Github as User, LogOut, History } from 'lucide-react';
+import { Search, Github as User, LogOut, History, Menu, X } from 'lucide-react';
+
+type FormControlElement = HTMLInputElement | HTMLTextAreaElement;
+type SearchInputEvent = React.MouseEvent<FormControlElement> | React.FocusEvent<FormControlElement>;
 
 interface AppNavbarProps
 {
@@ -19,19 +22,25 @@ interface AppNavbarProps
 function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavbarProps) 
 {
     const router = useRouter();
+    const pathname = usePathname(); // Get current path
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            router.push(`/search`);
+        e.preventDefault(); 
+        const trimmedQuery = searchQuery.trim();
+        if (router) {
+            if (trimmedQuery !== '') {
+                router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
+            } else {
+                // If search is empty, just navigate to the search page
+                router.push('/search');
+            }
         }
     };
-    type SearchInputEvent = MouseEvent<FormControlElement> | FocusEvent<FormControlElement>;
+
     const handleSearchAction = (e: SearchInputEvent) => {
-        // Pastikan kita menggunakan router dan belum berada di halaman '/search'
+        // Navigates to the search page immediately on click/focus
         if (router && !pathname.startsWith('/search')) {
-            // Navigasi ke halaman /search TANPA query (?q=)
             router.push('/search');
         }
     };
@@ -160,25 +169,15 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                 <Container fluid className='d-flex align-items-center **justify-content-between**'> 
                     <Navbar.Brand
                         href='/'
-                        className="navi-title"
+                        className="navi-title me-3"
                     >
                         Foma
                     </Navbar.Brand>
 
-                    {!hideSearchInput &&(
-                        <Form className="d-flex search" 
-                            onSubmit={(e) => { 
-                                e.preventDefault(); 
-                                // Jika pengguna mengisi teks dan menekan Enter, bawa query-nya
-                                const trimmedQuery = searchQuery.trim();
-                                if (router) {
-                                    if (trimmedQuery !== '') {
-                                        router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
-                                    } else {
-                                        router.push('/search');
-                                    }
-                                }
-                            }}
+                    {/* Desktop Search Bar */}
+                    <div className="d-none d-lg-flex **flex-lg-grow-1** align-items-center **mx-auto**" style={{ maxWidth: '500px' }}>
+                        <Form className="d-flex search w-100" 
+                            onSubmit={handleSearchSubmit}
                         >
                             <Form.Control
                                 type="search"
@@ -199,9 +198,36 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                                 <Search size={25} />
                             </Button>
                         </Form>
-                    )}
-                    
-                    {checking()}
+                    </div>
+
+                    {/* Mobile Search Bar */}
+                    <div className="d-flex d-lg-none align-items-center flex-grow-1 justify-content-end">
+                        <Form className="d-flex search-mobile" onSubmit={handleSearchSubmit}>
+                            <Form.Control
+                                type="search"
+                                placeholder="Search..."
+                                className="me-0"
+                                aria-label="Search"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onClick={handleSearchAction}
+                                onFocus={handleSearchAction}
+                            />
+                            <Button 
+                                type="submit"
+                                variant="outline-success" 
+                                className="search-button p-2 flex items-center justify-center" 
+                                style={{ width: '40px' }}
+                            >
+                                <Search size={25} />
+                            </Button>
+                        </Form>
+                        <Navbar.Toggle aria-controls="navbarScroll" className='ms-2 border-0 p-0 navbar-mobile-toggle' />
+                    </div>
+
+                    <div className="d-none d-lg-flex align-items-center **ms-3**">
+                        {desktopAuthContent()}
+                    </div>
                 </Container>
 
                 <Navbar.Collapse id="navbarScroll" className="navbar-menu-mobile">
@@ -255,7 +281,7 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                     border: 1px solid var(--border-color);
                 }
 
-                /* Search Bar Container Mobile */
+                /* Search Bar */
                 .search-mobile
                 {
                     flex-grow: 1;
@@ -399,6 +425,7 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                 /* --- Mobile Collapse Styles --- */
                 .navbar-mobile-toggle
                 {
+                    /* Style the hamburger menu toggle */
                     border: 1px solid var(--border-color) !important; 
                     border-radius: 8px !important;
                     min-width: 40px;
@@ -426,6 +453,7 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                     min-width: unset;
                     width: 100%;
                 }
+                
                 .mobile-profile-link
                 {
                     display: flex;
@@ -444,7 +472,7 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                     background-color: var(--primary-color);
                 }
 
-                /* Responsivenes */
+                /* Responsiveness */
                 @media (max-width: 992px)
                 {
                     .navigation
@@ -474,11 +502,30 @@ function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavb
                         width: 100%;
                         flex-basis: 100%;
                         margin-top: 0;
-                        order: 2; /* Put the menu below the main row */
+                        order: 2;
                     }
                     .search-mobile
                     {
                         margin-right: 0.5rem;
+                    }
+                }
+                
+                @media (min-width: 992px)
+                {
+                    .navbar-expand-lg .container-fluid
+                    {
+                        justify-content: space-between !important;
+                        flex-wrap: nowrap !important;
+                    }
+                    
+                    .navigation .container-fluid > div:nth-child(2)
+                    {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-left: auto !important;
+                        margin-right: auto !important;
+                        flex-grow: 1;
                     }
                 }
             `}

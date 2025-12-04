@@ -409,7 +409,6 @@ a {
 
     /* Sidebar di layar kecil: */
     .sidebar-card {
-        /* Default: Sembunyikan sidebar di luar layar */
         position: fixed;
         top: 0;
         left: -300px; 
@@ -417,10 +416,11 @@ a {
         height: 100vh;
         z-index: 1000;
         transition: left 0.3s ease-in-out;
-        background-color: white;
         box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+        padding: 1rem;
+        border-radius: 12px;
+        background: var(--white-color);
     }
-    /* Status Terbuka: Geser sidebar ke dalam viewport */
     .sidebar-card.is-open {
         left: 0;
     }
@@ -429,6 +429,39 @@ a {
         border: none !important;
         color: transparent !important;
         left: 270px !important;
+    }
+    .sidebar-list
+    {
+        display: flex;
+        flex-direction: column;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        gap: 0.5rem;
+    }
+    .sidebar-link
+    {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.8rem 1rem;
+        color: var(--secondary-color);
+        text-decoration: none;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .sidebar-link:hover
+    {
+        background-color: var(--primary-color);
+        color: var(--secondary-color); 
+    }
+    .sidebar-link span
+    {
+        flex-grow: 1; 
+    }
+}
+
 /* === RIGHT PANEL CARD (NEW) === */
 .right-panel-card {
     position: sticky;
