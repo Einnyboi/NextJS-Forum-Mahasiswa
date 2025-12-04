@@ -231,6 +231,14 @@ export const api = {
       } catch (e) { return []; }
     },
 
+    getById: async (communityId: string): Promise<CommunityData | null> => {
+      try {
+        const docRef = doc(db, "communities", communityId);
+        const docSnap = await getDoc(docRef);
+        return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as CommunityData : null;
+      } catch (e) { return null; }
+    },
+
     join: async (u: string, c: string) => {
       try { await updateDoc(doc(db, "communities", c), { members: arrayUnion(u) }); return true; }
       catch (e) { return false; }
@@ -313,18 +321,31 @@ export const api = {
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as CommentData[];
       } catch (e) { return []; }
     },
+
     create: async (data: any) => {
       try {
+        // 1. Add Comment
         await addDoc(collection(db, "comments"), {
           ...data,
-          likes: 0, // NEW
-          likedBy: {}, // NEW
+          likes: 0,
+          likedBy: {},
           createdAt: new Date()
         });
+
+        // 2. Increment Post Comment Count
+        const postRef = doc(db, "posts", data.postId);
+        const postSnap = await getDoc(postRef);
+
+        if (postSnap.exists()) {
+          const currentCount = postSnap.data().commentCount || 0;
+          await updateDoc(postRef, { commentCount: currentCount + 1 });
+        }
+
         return true;
       }
       catch (e) { return false; }
     },
+
     // NEW: Toggle Like Comment
     toggleLike: async (commentId: string, userId: string) => {
       try {

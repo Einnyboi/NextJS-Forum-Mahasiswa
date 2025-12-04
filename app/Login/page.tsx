@@ -3,7 +3,11 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { dbService } from '@/lib/db';
 
-const Login: React.FC = () => {
+interface LoginProps {
+    onLoginSuccess?: () => void;
+}
+
+const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -131,16 +135,9 @@ const Login: React.FC = () => {
                 <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Welcome Back</h2>
                 <p style={{ color: '#666', marginBottom: '1rem' }}>Log in to continue</p>
 
-                {/* Info Box */}
-                <div className="info-box">
-                    <strong>Demo Credentials:</strong><br />
-                    Admin: admin@foma.com / admin123<br />
-                    User: email apapun / password apapun
-                </div>
-
                 {error && <div className="error">{error}</div>}
 
-                <form>
+                <form onSubmit={handleLogin}>
                     <div className="form-group">
                         <label>Email Address</label>
                         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -152,6 +149,7 @@ const Login: React.FC = () => {
 
                     {/* SATU TOMBOL UNTUK SEMUA */}
                     <button
+                        type="submit"
                         className="loginBtn"
                         onClick={handleLogin}
                         disabled={loading}

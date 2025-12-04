@@ -43,8 +43,20 @@ export type Post = {
   authorId: string;
 
   title: string;
-  description: string;
-  category: string;
-  author?: string; // Hanya ada untuk Post dan User
+  content: string; // Was description
+  tag?: string;
+  category?: string;
+
+  // Denormalized data
+  communityName?: string;
+  communityImageUrl?: string;
+  authorName?: string;
+  authorAvatarUrl?: string;
+
+  author?: string;
   imageUrl?: string;
+
+  createdAt?: any;
+  likeCount?: number;
+  commentCount?: number;
 };

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PostData, api } from '@/lib/api';
-import { ChevronUp, ChevronDown, MessageSquare, Share2 } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, MessageSquare, Share2 } from 'lucide-react';
 
 // Helper: Warna avatar acak berdasarkan huruf depan
 function getAvatarColor(letter: string) {
@@ -12,12 +12,34 @@ function getAvatarColor(letter: string) {
     return colors[index];
 }
 
+// Helper: Format Date
+const formatDate = (date: any) => {
+    if (!date) return 'Just now';
+    try {
+        if (typeof date === 'object' && date.seconds) {
+            // Firestore Timestamp
+            return new Date(date.seconds * 1000).toLocaleDateString('id-ID');
+        }
+        if (date instanceof Date) {
+            return date.toLocaleDateString('id-ID');
+        }
+        if (typeof date === 'string') {
+            return date;
+        }
+    } catch (e) {
+        return 'Just now';
+    }
+    return 'Just now';
+};
+
 interface ThreadCardProps {
     thread: PostData;
     clickable?: boolean;
+    hideCommentAction?: boolean;
+    commentCount?: number; // NEW
 }
 
-export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
+export const ThreadCard = ({ thread, clickable = true, hideCommentAction = false, commentCount }: ThreadCardProps) => {
     const router = useRouter();
 
     // State Lokal untuk interaksi visual
@@ -25,8 +47,11 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
     const [downvotes, setDownvotes] = useState(thread.downvotes || 0);
     const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
+    // Prioritize passed commentCount, then thread.commentCount, then 0
+    const [localCommentCount, setLocalCommentCount] = useState(commentCount ?? thread.commentCount ?? 0);
+    const [communityName, setCommunityName] = useState<string | null>(null);
 
-    // Get current user
+    // Get current user & fetch comment count if missing
     useEffect(() => {
         const sessionData = localStorage.getItem('userSession');
         if (sessionData) {
@@ -39,13 +64,55 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
                 }
             }
         }
-    }, [thread]);
+
+        // Fetch comment count if it looks like it might be missing AND we didn't get a prop
+        const fetchCommentCount = async () => {
+            if (commentCount === undefined && thread.commentCount === undefined) {
+                try {
+                    const comments = await api.comments.getByPost(thread.id);
+                    setLocalCommentCount(comments.length);
+                } catch (e) {
+                    console.error("Failed to fetch comment count", e);
+                }
+            }
+        };
+        fetchCommentCount();
+
+        // Fetch Community Name if communityId exists
+        const fetchCommunityName = async () => {
+            if (thread.communityId) {
+                try {
+                    const community = await api.communities.getById(thread.communityId);
+                    if (community) {
+                        setCommunityName(community.name);
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch community name", e);
+                }
+            }
+        };
+        fetchCommunityName();
+
+    }, [thread, commentCount]);
+
+    // Update local count if prop changes
+    useEffect(() => {
+        if (commentCount !== undefined) {
+            setLocalCommentCount(commentCount);
+        } else if (thread.commentCount !== undefined) {
+            setLocalCommentCount(thread.commentCount);
+        }
+    }, [thread.commentCount, commentCount]);
 
     // Ambil inisial nama untuk avatar
     const initial = thread.author ? thread.author.charAt(0).toUpperCase() : '?';
     const voteScore = upvotes - downvotes;
 
-    // 1. Fungsi Navigasi ke Detail Page
+    // Determine Display Date
+    const displayDate = thread.category === 'event'
+        ? (thread.createdAt ? formatDate(thread.createdAt) : (thread.date || 'Just now'))
+        : (thread.date || 'Just now');
+
     const handleCardClick = (e: React.MouseEvent) => {
         if (clickable) {
             router.push(`/thread/${thread.id}`);
@@ -131,12 +198,12 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
                         <div className="d-flex align-items-center gap-2">
                             <span className="author-name small fw-bold">{thread.author}</span>
                             <span className="text-muted small">•</span>
-                            <span className="post-date small text-muted">{thread.date || 'Baru saja'}</span>
+                            <span className="post-date small text-muted">{displayDate}</span>
                         </div>
                     </div>
 
                     <span className={`category-badge ${thread.category} ms-auto`} style={{ fontSize: '0.7rem' }}>
-                        {thread.category}
+                        {communityName ? communityName.toUpperCase() : thread.category}
                     </span>
                 </div>
 
@@ -168,29 +235,40 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
             {/* --- FOOTER ACTIONS (VOTING & COMMENTS) --- */}
             <div className="thread-footer d-flex gap-4 text-muted small fw-bold align-items-center">
 
-                {/* Voting Section (Moved to Footer) */}
-                <div className="d-flex align-items-center gap-1 bg-light rounded-pill px-2 py-1 border">
-                    <button
-                        onClick={handleUpvote}
-                        className={`btn btn-sm p-0 ${userVote === 'up' ? 'text-success' : 'text-muted'}`}
-                        style={{ border: 'none', background: 'none', lineHeight: 1 }}
-                    >
-                        <ChevronUp size={20} />
-                    </button>
-                    <span className="mx-1" style={{ minWidth: '15px', textAlign: 'center' }}>{voteScore}</span>
-                    <button
-                        onClick={handleDownvote}
-                        className={`btn btn-sm p-0 ${userVote === 'down' ? 'text-danger' : 'text-muted'}`}
-                        style={{ border: 'none', background: 'none', lineHeight: 1 }}
-                    >
-                        <ChevronDown size={20} />
-                    </button>
+                {/* Voting Section (Separated Upvotes and Downvotes) */}
+                <div className="d-flex align-items-center gap-3 bg-light rounded-pill px-3 py-1 border">
+                    {/* Upvote Section */}
+                    <div className="d-flex align-items-center gap-2">
+                        <button
+                            onClick={handleUpvote}
+                            className={`btn btn-sm p-0 ${userVote === 'up' ? 'text-success' : 'text-muted'}`}
+                            style={{ border: 'none', background: 'none', lineHeight: 1 }}
+                        >
+                            <ThumbsUp size={18} fill={userVote === 'up' ? "currentColor" : "none"} />
+                        </button>
+                        <span className="small fw-bold">{upvotes}</span>
+                    </div>
+
+                    {/* Divider */}
+                    <div style={{ width: '1px', height: '16px', backgroundColor: '#dee2e6' }}></div>
+
+                    {/* Downvote Section */}
+                    <div className="d-flex align-items-center gap-2">
+                        <button
+                            onClick={handleDownvote}
+                            className={`btn btn-sm p-0 ${userVote === 'down' ? 'text-danger' : 'text-muted'}`}
+                            style={{ border: 'none', background: 'none', lineHeight: 1 }}
+                        >
+                            <ThumbsDown size={18} fill={userVote === 'down' ? "currentColor" : "none"} />
+                        </button>
+                        <span className="small fw-bold">{downvotes}</span>
+                    </div>
                 </div>
 
                 {/* Comments */}
                 <div className="d-flex align-items-center gap-2">
                     <MessageSquare size={18} />
-                    <span>{thread.commentCount || 0} Comments</span>
+                    <span>{localCommentCount > 0 ? `${localCommentCount} Comments` : 'Comments'}</span>
                 </div>
 
                 {/* Share */}
@@ -198,6 +276,13 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
                     <Share2 size={18} />
                     <span>Share</span>
                 </div>
+
+                {/* Event Date (Only for Events) */}
+                {thread.category === 'event' && thread.date && (
+                    <div className="ms-auto d-flex align-items-center gap-2 text-danger small fw-bold">
+                        <span>Event Date: {thread.date}</span>
+                    </div>
+                )}
             </div>
         </div>
     );

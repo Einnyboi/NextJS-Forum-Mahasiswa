@@ -30,8 +30,7 @@ function AppNavbar()
         router.push('/login');
     }
 
-    const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) =>
-    {
+    const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         router.push('/signup');
     }
@@ -77,17 +76,16 @@ function AppNavbar()
                 </Nav>
             );
         }
-        else
-        {
+        else {
             return (
                 <Nav className="d-flex align-items-center signin">
-                    <Button 
+                    <Button
                         className='lgnBtn'
                         onClick={handleLoginClick}
                     >
                         Login
                     </Button>
-                    <Button 
+                    <Button
                         className='lgnBtn'
                         onClick={handleSignupClick}
                     >
@@ -108,7 +106,7 @@ function AppNavbar()
                     >
                         Foma
                     </Navbar.Brand>
-                
+
                     <Form className="d-flex search">
                         <Form.Control
                             type="search"
@@ -124,9 +122,9 @@ function AppNavbar()
                     {checking()}
                 </Container>
             </Navbar>
-            
+
             <style jsx global>
-            {`
+                {`
                 body
                 {
                     padding-top: 80px !important;
