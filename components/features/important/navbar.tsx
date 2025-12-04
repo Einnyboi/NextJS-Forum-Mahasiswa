@@ -130,31 +130,108 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
         }
     };
 
+    const mobileAuthContent = () =>
+    {
+        if (isLoggedIn)
+        {
+            return (
+                <Nav className="mobile-auth-section w-100 py-2">
+                    <Nav.Link href="/profile" className="mobile-profile-link">
+                        <User size={18} className="me-2" />
+                        Profile
+                    </Nav.Link>
+                    <Nav.Link href="/user-history" className="mobile-profile-link">
+                        <History size={18} className="me-2" />
+                        History
+                    </Nav.Link>
+                    <Nav.Link
+                        as="button"
+                        onClick={handleLogout}
+                        className="mobile-profile-link logout"
+                    >
+                        <LogOut size={18} className="me-2" />
+                        Logout
+                    </Nav.Link>
+                </Nav>
+            );
+        }
+        else {
+            return (
+                <div className="d-flex flex-column signin-mobile p-3 w-100">
+                    <Button 
+                        className='lgnBtn mb-2'
+                        onClick={handleLoginClick}
+                    >
+                        Login
+                    </Button>
+                    <Button
+                        className='lgnBtn'
+                        onClick={handleSignupClick}
+                    >
+                        Sign Up
+                    </Button>
+                </div>
+            );
+        }
+    };
+
     return (
         <>
             <Navbar expand="lg" className='navigation'>
-                <Container fluid>
+                <Container fluid className='d-flex align-items-center justify-content-between'>
                     <Navbar.Brand
                         href='/'
                         className="navi-title me-3"
                     >
                         Foma
                     </Navbar.Brand>
-                
-                    <Form className="d-flex search">
-                        <Form.Control
-                            type="search"
-                            placeholder="Searching for something?"
-                            className="me-0"
-                            aria-label="Search"
-                        />
-                        <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
-                            <Search size={25} />
-                        </Button>
-                    </Form>
 
-                    {checking()}
+                    {/* Desktop Search Bar & Auth - Hidden on Mobile */}
+                    <div className="d-none d-lg-flex flex-lg-grow-1 align-items-center mx-auto" style={{ maxWidth: '500px' }}>
+                        <Form className="d-flex search w-100">
+                            <Form.Control
+                                type="search"
+                                placeholder="Searching for something?"
+                                className="me-0"
+                                aria-label="Search"
+                            />
+                            <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
+                                <Search size={25} />
+                            </Button>
+                        </Form>
+                    </div>
+
+                    {/* Desktop Auth */}
+                    <div className="d-none d-lg-flex align-items-center ms-3">
+                        {checking()}
+                    </div>
+
+                    {/* Mobile Hamburger Toggle */}
+                    <Navbar.Toggle aria-controls="navbarScroll" className='ms-2 border-0 p-0 navbar-mobile-toggle' />
                 </Container>
+
+                {/* Mobile Collapse Menu */}
+                <Navbar.Collapse id="navbarScroll" className="navbar-menu-mobile">
+                    <Container fluid className="px-lg-0">
+                        {/* Mobile Search */}
+                        <Form className="d-flex d-lg-none search w-100 my-2">
+                            <Form.Control
+                                type="search"
+                                placeholder="Searching for something?"
+                                className="me-0"
+                                aria-label="Search"
+                            />
+                            <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
+                                <Search size={25} />
+                            </Button>
+                        </Form>
+
+                        {/* Mobile Auth Content */}
+                        <div className="d-lg-none mobile-auth-wrapper">
+                            {mobileAuthContent()}
+                        </div>
+                    </Container>
+                </Navbar.Collapse>
             </Navbar>
 
             {/* Logout Confirmation Modal */}
