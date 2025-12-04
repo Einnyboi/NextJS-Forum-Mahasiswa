@@ -8,6 +8,7 @@ import SignupForm from "./signup/page";
 import LoginForm from "./Login/page";
 import { api, PostData } from "@/lib/api";
 import { ThreadCard } from "@/components/features/thread/ThreadCard";
+import { CommunityHeroCarousel } from "@/components/features/home/CommunityHeroCarousel";
 import CreateCommunityForm from "@/components/features/community/CreateCommunityForm";
 
 // --- KOMPONEN FEED UTAMA (POSTS) ---
@@ -15,7 +16,6 @@ const HomeContent = ({ user }: { user: any }) => {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [communities, setCommunities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
   const router = useRouter();
 
   // Fetch Data Postingan dan Komunitas
@@ -27,7 +27,7 @@ const HomeContent = ({ user }: { user: any }) => {
         api.communities.getAll()
       ]);
       setPosts(postsData);
-      // Ambil 4 komunitas teratas untuk preview
+      // Ambil semua komunitas untuk carousel
       setCommunities(communitiesData);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -40,88 +40,14 @@ const HomeContent = ({ user }: { user: any }) => {
     fetchData();
   }, []);
 
-  // Auto-rotate carousel every 3 seconds
-  useEffect(() => {
-    if (communities.length === 0) return;
-
-    const interval = setInterval(() => {
-      setCurrentCarouselIndex((prev) => (prev + 1) % Math.min(communities.length, 3));
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [communities]);
-
-  const topCommunities = communities.slice(0, 3);
-  const currentCommunity = topCommunities[currentCarouselIndex];
-
   return (
     <div>
-      <div className="hero-card">
-        {/* Search Bar removed as requested */}
-
-        <div className="hero-content">
-          <h2 className="hero-title">
-            Discuss with People<br />Over The World
-          </h2>
-          <p className="hero-subtitle">
-            Bagikan ide atau acara terbaru kepada teman-temanmu.
-          </p>
-
-          <div className="community-pills-container">
-            {/* Popular pill removed as requested */}
-            {communities.slice(0, 4).map(comm => (
-              <div
-                key={comm.id}
-                className="community-pill"
-                onClick={() => router.push(`/community/${comm.id}`)}
-              >
-                {comm.name}
-              </div>
-            ))}
-          </div>
-
-          {/* Explore Button moved below as requested */}
-          <div style={{ marginTop: '1rem' }}>
-            <div
-              className="community-pill active"
-              onClick={() => router.push('/community')}
-            >
-              Explore &rarr;
-            </div>
-          </div>
-        </div>
-
-        {/* Hero Carousel - Auto Rotating */}
-        <div className="hero-carousel-container">
-          {currentCommunity && (
-            <div
-              className="hero-carousel-card"
-              onClick={() => router.push(`/community/${currentCommunity.id}`)}
-            >
-              <div className="carousel-text-content">
-                <h3 className="carousel-community-name">{currentCommunity.name}</h3>
-                <p className="carousel-community-desc">
-                  {(currentCommunity.description?.length || 0) > 50
-                    ? currentCommunity.description.substring(0, 50) + '...'
-                    : (currentCommunity.description || 'No description available')}
-                </p>
-                <div className="carousel-stats">
-                  {currentCommunity.members?.length || 0} Members
-                </div>
-              </div>
-              <div
-                className="carousel-community-image"
-                style={{ backgroundImage: `url(${currentCommunity.imageUrl || 'https://via.placeholder.com/150'})` }}
-              ></div>
-            </div>
-          )}
-        </div>
-      </div>
+      <CommunityHeroCarousel communities={communities} />
 
       {loading ? (
         <p className="state-message">Memuat postingan...</p>
       ) : posts.length > 0 ? (
-        <div className="d-flex flex-column gap-2">
+        <div className="d-flex flex-column gap-3">
           {/* List Postingan */}
           {posts.map(post => (
             <ThreadCard key={post.id} thread={post} />
@@ -206,6 +132,7 @@ export default function Home() {
         onNavChange={handleNavChange}
         isLoggedIn={!!user}
         userRole={user?.role}
+        userName={user?.fullName}
       />
 
       <div className="main-container">

@@ -121,7 +121,7 @@ const CommunityPage = () => {
                 else if (view === 'event') router.push('/event');
                 else if (view === 'login') setCurrentView('login');
                 else if (view === 'signup') setCurrentView('signup');
-            }} isLoggedIn={!!user} userRole={user?.role} />
+            }} isLoggedIn={!!user} userRole={user?.role} userName={user?.fullName} />
 
             <div className="main-dashboard-layout">
                 <Sidebar activeView="community" onMenuClick={(view) => router.push(view === 'home' ? '/' : `/${view}`)} />

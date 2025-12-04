@@ -8,26 +8,23 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { Search, Github as User, LogOut, History } from 'lucide-react';
 
-interface AppNavbarProps
-{
+interface AppNavbarProps {
     onNavChange?: (view: string) => void;
     isLoggedIn?: boolean;
+    userName?: string;
 }
 
-function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps) 
-{
+function AppNavbar({ onNavChange, isLoggedIn, userName }: AppNavbarProps) {
     // router fallback when no onNavChange handler is provided
     const router = require('next/navigation').useRouter?.() ?? null;
 
-    const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
-    {
+    const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         if (onNavChange) onNavChange('login');
         else if (router) router.push('/login');
     }
 
-    const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) =>
-    {
+    const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         if (onNavChange) onNavChange('signup');
         else if (router) router.push('/signup');
@@ -38,6 +35,7 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
         // clear localStorage
         if (typeof window !== 'undefined') {
             window.localStorage.removeItem('currentUser');
+            window.localStorage.removeItem('userSession');
         }
         setLoggedIn(false);
         // redirect to home
@@ -49,7 +47,7 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
     useEffect(() => {
         // initialise from localStorage
         try {
-            const stored = typeof window !== 'undefined' ? window.localStorage.getItem('currentUser') : null;
+            const stored = typeof window !== 'undefined' ? (window.localStorage.getItem('currentUser') || window.localStorage.getItem('userSession')) : null;
             setLoggedIn(Boolean(stored));
         } catch (e) {
             setLoggedIn(Boolean(isLoggedIn));
@@ -57,7 +55,7 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
 
         // update on storage events (login/logout in other tabs)
         const onStorage = (e: StorageEvent) => {
-            if (e.key === 'currentUser') {
+            if (e.key === 'currentUser' || e.key === 'userSession') {
                 setLoggedIn(Boolean(e.newValue));
             }
         }
@@ -67,15 +65,13 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
         }
     }, [isLoggedIn]);
 
-    const checking = () =>
-    {
-        if (loggedIn)
-        {
+    const checking = () => {
+        if (loggedIn) {
             return (
                 <Nav className="my-2 my-lg-0 profile-dropdown-toggle">
-                    <NavDropdown 
-                        title="User" 
-                        id="navbarScrollingDropdown" 
+                    <NavDropdown
+                        title={userName || "User"}
+                        id="navbarScrollingDropdown"
                         align="end"
                     >
                         <NavDropdown.Item href="/profile">
@@ -95,17 +91,16 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                 </Nav>
             );
         }
-        else
-        {
+        else {
             return (
                 <Nav className="d-flex align-items-center signin">
-                    <Button 
+                    <Button
                         className='lgnBtn'
                         onClick={handleLoginClick}
                     >
                         Login
                     </Button>
-                    <Button 
+                    <Button
                         className='lgnBtn'
                         onClick={handleSignupClick}
                     >
@@ -126,7 +121,7 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                     >
                         Foma
                     </Navbar.Brand>
-                
+
                     <Form className="d-flex search">
                         <Form.Control
                             type="search"
@@ -142,9 +137,9 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                     {checking()}
                 </Container>
             </Navbar>
-            
+
             <style jsx global>
-            {`
+                {`
                 body
                 {
                     padding-top: 80px !important;

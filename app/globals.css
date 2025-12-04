@@ -190,8 +190,6 @@ a {
 
 .welcome-text {
     color: #6D7275;
-    font-size: 1rem;
-    margin-bottom: 1rem;
 }
 
 /* Thread Card */
@@ -199,7 +197,6 @@ a {
     background: #ffffff;
     padding: 1.8rem;
     border-radius: 16px;
-    margin-bottom: 1.5rem;
     border: 1px solid rgba(0,0,0,0.08);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative;

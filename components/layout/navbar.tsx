@@ -1,58 +1,66 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import { Search, Github as User, LogOut, History, Settings } from 'lucide-react'; // Tambah icon Settings
+import { Search, Github as User, LogOut, History, Settings } from 'lucide-react';
 
-// 1. UPDATE INTERFACE
-interface AppNavbarProps
-{
+interface AppNavbarProps {
     onNavChange: (view: string) => void;
     isLoggedIn: boolean;
-    userRole?: string; // Tambahkan ini (opsional karena user mungkin belum login)
+    userRole?: string;
+    userName?: string;
 }
 
-// 2. UPDATE ARGUMEN FUNGSI
-function AppNavbar({ onNavChange , isLoggedIn, userRole }: AppNavbarProps) 
-{
-    const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
-    {
+function AppNavbar({ onNavChange, isLoggedIn, userRole, userName }: AppNavbarProps) {
+    const [storedUserName, setStoredUserName] = useState("");
+
+    useEffect(() => {
+        const sessionData = localStorage.getItem('userSession');
+        if (sessionData) {
+            try {
+                const session = JSON.parse(sessionData);
+                if (session.fullName) {
+                    setStoredUserName(session.fullName);
+                }
+            } catch (e) {
+                console.error("Error parsing user session", e);
+            }
+        }
+    }, []);
+
+    const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        onNavChange('login'); 
+        onNavChange('login');
     }
 
-    const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) =>
-    {
+    const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         onNavChange('signup');
     }
 
-    const handleLogout = (e: React.MouseEvent<HTMLAnchorElement>) =>
-{
-    e.preventDefault();
-    localStorage.removeItem('userSession');
-    onNavChange('login');
-}
+    const handleLogout = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        localStorage.removeItem('userSession');
+        onNavChange('login');
+    }
 
-    const checking = () =>
-    {
-        if (isLoggedIn)
-        {
+    const checking = () => {
+        if (isLoggedIn) {
             return (
                 <Nav className="my-2 my-lg-0 profile-dropdown-toggle d-flex align-items-center gap-3">
-                    
-                    {/* 3. LOGIKA TOMBOL ADMIN */}
+
+                    {/* LOGIKA TOMBOL ADMIN */}
                     {userRole === 'admin' && (
-                        <Button 
-                            href="/admin" 
+                        <Button
+                            href="/admin"
                             variant="danger" // Warna Merah Bootstrap
                             className="d-flex align-items-center gap-2"
-                            style={{ 
-                                borderRadius: '50px', 
+                            style={{
+                                borderRadius: '50px',
                                 fontWeight: '600',
                                 padding: '0.5rem 1.2rem',
                                 boxShadow: '0 4px 15px rgba(194, 1, 20, 0.2)'
@@ -63,9 +71,9 @@ function AppNavbar({ onNavChange , isLoggedIn, userRole }: AppNavbarProps)
                         </Button>
                     )}
 
-                    <NavDropdown 
-                        title="User" 
-                        id="navbarScrollingDropdown" 
+                    <NavDropdown
+                        title={userName || storedUserName || "User"}
+                        id="navbarScrollingDropdown"
                         align="end"
                     >
                         <NavDropdown.Item href="profile.tsx">
@@ -85,17 +93,16 @@ function AppNavbar({ onNavChange , isLoggedIn, userRole }: AppNavbarProps)
                 </Nav>
             );
         }
-        else
-        {
+        else {
             return (
                 <Nav className="d-flex align-items-center signin">
-                    <Button 
+                    <Button
                         className='lgnBtn'
                         onClick={handleLoginClick}
                     >
                         Login
                     </Button>
-                    <Button 
+                    <Button
                         className='lgnBtn'
                         onClick={handleSignupClick}
                     >
@@ -116,7 +123,7 @@ function AppNavbar({ onNavChange , isLoggedIn, userRole }: AppNavbarProps)
                     >
                         Foma
                     </Navbar.Brand>
-                
+
                     <Form className="d-flex search">
                         <Form.Control
                             type="search"
@@ -132,9 +139,9 @@ function AppNavbar({ onNavChange , isLoggedIn, userRole }: AppNavbarProps)
                     {checking()}
                 </Container>
             </Navbar>
-            
+
             <style jsx global>
-            {`
+                {`
                 body
                 {
                     padding-top: 80px !important;

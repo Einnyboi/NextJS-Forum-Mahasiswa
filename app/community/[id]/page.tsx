@@ -15,10 +15,11 @@ interface CreateModalProps {
     onClose: () => void;
     onSubmit: () => void;
     userEmail: string;
+    userName?: string;
     communityId: string;
 }
 
-const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: CreateModalProps) => {
+const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, userName, communityId }: CreateModalProps) => {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [imageUrl, setImageUrl] = useState("");
@@ -53,7 +54,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
             title,
             content,
             imageUrl,
-            author: userEmail || "Anonymous",
+            author: userName || userEmail || "Anonymous",
             category: category,
             communityId: communityId,
             date: dateString,
@@ -215,7 +216,7 @@ export default function CommunityDetailPage() {
 
     return (
         <div>
-            <Navbar onNavChange={() => router.push('/')} isLoggedIn={!!user} userRole={user?.role} />
+            <Navbar onNavChange={() => router.push('/')} isLoggedIn={!!user} userRole={user?.role} userName={user?.fullName} />
 
             <div className="main-dashboard-layout">
                 <Sidebar activeView="community" onMenuClick={(view) => router.push(view === 'home' ? '/' : `/${view}`)} />
@@ -289,6 +290,7 @@ export default function CommunityDetailPage() {
                         onClose={() => setIsModalOpen(false)}
                         onSubmit={fetchPosts}
                         userEmail={user?.email}
+                        userName={user?.fullName}
                         communityId={communityId}
                     />
 

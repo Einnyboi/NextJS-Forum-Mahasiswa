@@ -77,7 +77,7 @@ export default function ThreadDetailPage() {
             postId: postId,
             content: newComment,
             imageUrl: commentImage,
-            author: user?.email || "Anonymous"
+            author: user?.fullName || user?.email || "Anonymous"
         });
 
         if (success) {
@@ -102,7 +102,7 @@ export default function ThreadDetailPage() {
 
     return (
         <div>
-            <Navbar onNavChange={() => { }} isLoggedIn={!!user} userRole={user?.role} />
+            <Navbar onNavChange={() => { }} isLoggedIn={!!user} userRole={user?.role} userName={user?.fullName} />
 
             <div className="main-dashboard-layout">
                 <Sidebar activeView="home" onMenuClick={() => { }} />
