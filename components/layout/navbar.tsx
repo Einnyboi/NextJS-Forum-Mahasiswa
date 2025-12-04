@@ -1,76 +1,75 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import { Search, Github as User, LogOut, History, Settings } from 'lucide-react'; // Tambah icon Settings
+import { Search, Github as User, LogOut, History } from 'lucide-react';
 
-// 1. UPDATE INTERFACE
-interface AppNavbarProps
+function AppNavbar() 
 {
-    onNavChange: (view: string) => void;
-    isLoggedIn: boolean;
-    userRole?: string; // Tambahkan ini (opsional karena user mungkin belum login)
-}
+    const router = useRouter();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-// 2. UPDATE ARGUMEN FUNGSI
-function AppNavbar({ onNavChange , isLoggedIn, userRole }: AppNavbarProps) 
-{
+    // Check login status on mount
+    useEffect(() => {
+        const checkAuth = () => {
+            const session = typeof window !== 'undefined' ? localStorage.getItem('userSession') : null;
+            setIsLoggedIn(!!session);
+        };
+        
+        checkAuth();
+    }, []);
+
     const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
         e.preventDefault();
-        onNavChange('login'); 
+        router.push('/login');
     }
 
     const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
         e.preventDefault();
-        onNavChange('signup');
+        router.push('/signup');
     }
+
+    const handleLogout = () => {
+        localStorage.removeItem('userSession');
+        window.location.href = '/';
+    };
 
     const checking = () =>
     {
         if (isLoggedIn)
         {
             return (
-                <Nav className="my-2 my-lg-0 profile-dropdown-toggle d-flex align-items-center gap-3">
-                    
-                    {/* 3. LOGIKA TOMBOL ADMIN */}
-                    {userRole === 'admin' && (
-                        <Button 
-                            href="/admin" 
-                            variant="danger" // Warna Merah Bootstrap
-                            className="d-flex align-items-center gap-2"
-                            style={{ 
-                                borderRadius: '50px', 
-                                fontWeight: '600',
-                                padding: '0.5rem 1.2rem',
-                                boxShadow: '0 4px 15px rgba(194, 1, 20, 0.2)'
-                            }}
-                        >
-                            <Settings size={18} />
-                            Admin Settings
-                        </Button>
-                    )}
-
+                <Nav className="my-2 my-lg-0 profile-dropdown-toggle">
                     <NavDropdown 
                         title="User" 
                         id="navbarScrollingDropdown" 
                         align="end"
                     >
-                        <NavDropdown.Item href="profile.tsx">
+                        <NavDropdown.Item href="/profile">
                             <User size={18} className="me-2" />
                             Profile
                         </NavDropdown.Item>
-                        <NavDropdown.Item href="history.tsx">
+                        <NavDropdown.Item href="/user-history">
                             <History size={18} className="me-2" />
                             History
                         </NavDropdown.Item>
                         <NavDropdown.Divider />
-                        <NavDropdown.Item href="#logout">
+                        <NavDropdown.Item 
+                            as="button" 
+                            onClick={(e: React.MouseEvent) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleLogout();
+                            }}
+                            type="button"
+                        >
                             <LogOut size={18} className="me-2" />
                             Logout
                         </NavDropdown.Item>

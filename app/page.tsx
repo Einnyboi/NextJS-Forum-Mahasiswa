@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation'; // Import useRouter
-import Navbar from "@/components/layout/navbar";
-import Sidebar from "@/components/layout/sidebar";
+import Navbar from "@/components/features/important/navbar";
+import Sidebar from "@/components/features/important/sidebar";
 import SignupForm from "./signup/page";
 import LoginForm from "./Login/page";
 import { api, PostData } from "@/lib/api";
@@ -94,9 +94,13 @@ export default function Home() {
               fullName: session.fullName
             });
           }
+        } else {
+          // clear user if no session
+          setUser(null);
         }
       } catch (error) {
         console.error("Error reading session:", error);
+        setUser(null);
       } finally {
         setAuthLoading(false);
       }
@@ -130,7 +134,6 @@ export default function Home() {
       <Navbar
         onNavChange={handleNavChange}
         isLoggedIn={!!user}
-        userRole={user?.role}
       />
 
       <div className="main-container">

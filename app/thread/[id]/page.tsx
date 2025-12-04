@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import Navbar from "@/components/layout/navbar";
-import Sidebar from "@/components/layout/sidebar";
+import Navbar from "@/components/features/important/navbar";
+import Sidebar from "@/components/features/important/sidebar";
 import { ThreadCard } from "@/components/features/thread/ThreadCard";
 import { api, PostData, CommentData } from "@/lib/api";
 import { onAuthStateChanged } from "firebase/auth";
