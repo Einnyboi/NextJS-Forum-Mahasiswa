@@ -1,6 +1,5 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
@@ -9,41 +8,79 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { Search, Github as User, LogOut, History } from 'lucide-react';
 
-function AppNavbar() 
+interface AppNavbarProps
 {
-    const router = useRouter();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    onNavChange?: (view: string) => void;
+    isLoggedIn?: boolean;
+}
 
-    // Check login status on mount
-    useEffect(() => {
-        const checkAuth = () => {
-            const session = typeof window !== 'undefined' ? localStorage.getItem('userSession') : null;
-            setIsLoggedIn(!!session);
-        };
-        
-        checkAuth();
-    }, []);
+function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps) 
+{
+    // router fallback when no onNavChange handler is provided
+    const router = require('next/navigation').useRouter?.() ?? null;
+
+    // State untuk input pencarian
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
         e.preventDefault();
-        router.push('/login');
+        if (onNavChange) onNavChange('login');
+        else if (router) router.push('/login');
     }
 
     const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
         e.preventDefault();
-        router.push('/signup');
+        if (onNavChange) onNavChange('signup');
+        else if (router) router.push('/signup');
     }
 
-    const handleLogout = () => {
-        localStorage.removeItem('userSession');
-        window.location.href = '/';
+    const handleLogout = (e: React.MouseEvent) => {
+        e.preventDefault();
+        // clear localStorage
+        if (typeof window !== 'undefined') {
+            window.localStorage.removeItem('currentUser');
+        }
+        setLoggedIn(false);
+        // redirect to home
+        if (router) router.push('/');
     };
+    type SearchInputEvent = MouseEvent<FormControlElement> | FocusEvent<FormControlElement>;
+    const handleSearchAction = (e: SearchInputEvent) => {
+        // Pastikan kita menggunakan router dan belum berada di halaman '/search'
+        if (router && !pathname.startsWith('/search')) {
+            // Navigasi ke halaman /search TANPA query (?q=)
+            router.push('/search');
+        }
+    };
+
+    const [loggedIn, setLoggedIn] = useState<boolean>(Boolean(isLoggedIn));
+
+    useEffect(() => {
+        // initialise from localStorage
+        try {
+            const stored = typeof window !== 'undefined' ? window.localStorage.getItem('currentUser') : null;
+            setLoggedIn(Boolean(stored));
+        } catch (e) {
+            setLoggedIn(Boolean(isLoggedIn));
+        }
+
+        // update on storage events (login/logout in other tabs)
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === 'currentUser') {
+                setLoggedIn(Boolean(e.newValue));
+            }
+        }
+        if (typeof window !== 'undefined') window.addEventListener('storage', onStorage);
+        return () => {
+            if (typeof window !== 'undefined') window.removeEventListener('storage', onStorage);
+        }
+    }, [isLoggedIn]);
 
     const checking = () =>
     {
-        if (isLoggedIn)
+        if (loggedIn)
         {
             return (
                 <Nav className="my-2 my-lg-0 profile-dropdown-toggle">
@@ -61,15 +98,7 @@ function AppNavbar()
                             History
                         </NavDropdown.Item>
                         <NavDropdown.Divider />
-                        <NavDropdown.Item 
-                            as="button" 
-                            onClick={(e: React.MouseEvent) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleLogout();
-                            }}
-                            type="button"
-                        >
+                        <NavDropdown.Item onClick={handleLogout}>
                             <LogOut size={18} className="me-2" />
                             Logout
                         </NavDropdown.Item>
@@ -103,20 +132,37 @@ function AppNavbar()
             <Navbar expand="lg" className='navigation'>
                 <Container fluid>
                     <Navbar.Brand
-                        href='#'
+                        href='/'
                         className="navi-title"
                     >
                         Foma
                     </Navbar.Brand>
                 
-                    <Form className="d-flex search">
+                    <Form className="d-flex search"
+                        onSubmit={(e) => { 
+                            e.preventDefault(); 
+                            // Jika pengguna mengisi teks dan menekan Enter, bawa query-nya
+                            const trimmedQuery = searchQuery.trim();
+                            if (router) {
+                                if (trimmedQuery !== '') {
+                                    router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
+                                } else {
+                                    router.push('/search');
+                                }
+                            }
+                        }}
+                    >
                         <Form.Control
                             type="search"
                             placeholder="Searching for something?"
                             className="me-0"
                             aria-label="Search"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={handleSearchAction}
+                            onClick={handleSearchAction}
                         />
-                        <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
+                        <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }} type="submit">
                             <Search size={25} />
                         </Button>
                     </Form>

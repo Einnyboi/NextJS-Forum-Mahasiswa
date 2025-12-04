@@ -4,6 +4,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { popularSearch } from '@/lib/searchdata'; 
 import { api } from '@/lib/api'; 
 import { Search } from 'lucide-react';
+import Link from 'next/link';
 
 // Tipe data untuk Hasil Pencarian
 type SearchResult = {
@@ -124,26 +125,44 @@ export default function SearchPage() {
   const showSuggestions = isFocused && !currentQuery;
   const showResults = !!currentQuery; 
 
-  const ResultItem = ({ content }: { content: SearchResult }) => (
-      <li key={content.id} className="item-search p-3 m-2 border rounded">
-          <h3 className="h6">{content.title}</h3> 
-          <p className="mb-1">
-              <small>{content.description}</small>
-          </p>
-          {/* Tampilkan info tambahan hanya untuk Post */}
-          {content.type === 'post' && (
-              <p className="mb-0 text-success">
-                  <small>by: {content.author} | in: {content.category}</small> 
-              </p>
-          )}
-          {/* Tampilkan info tambahan untuk Komunitas */}
-          {content.type === 'community' && (
-              <p className="mb-0 text-success">
-                  <small>Community: {content.category}</small> 
-              </p>
-          )}
-      </li>
-  );
+  const ResultItem = ({ content }: { content: SearchResult }) => {
+    let href = '';
+    if (content.type === 'post') {
+        href = `/thread/${content.id}`;
+    } else if (content.type === 'community') {
+        href = `/community/${content.id}`;
+    }
+    const ContentWrapper = href 
+        ? ({ children }: { children: React.ReactNode }) => (
+            <Link href={href} className="text-decoration-none text-dark">
+                {children}
+            </Link>
+        )
+        : ({ children }: { children: React.ReactNode }) => <>{children}</>;
+
+    return (
+        <li key={content.id} className="item-search p-3 m-2 border rounded" style={{ cursor: href ? 'pointer' : 'default' }}>
+            <ContentWrapper>
+                <h3 className="h6">{content.title}</h3> 
+                <p className="mb-1">
+                    <small>{content.description}</small>
+                </p>
+                {/* Tampilkan info tambahan hanya untuk Post */}
+                {content.type === 'post' && (
+                    <p className="mb-0 text-success">
+                        <small>by: {content.author} | in: {content.category}</small> 
+                    </p>
+                )}
+                {/* Tampilkan info tambahan untuk Komunitas */}
+                {content.type === 'community' && (
+                    <p className="mb-0 text-success">
+                        <small>Community: {content.category}</small> 
+                    </p>
+                )}
+            </ContentWrapper>
+        </li>
+    );
+};
 
   return (
     <div
