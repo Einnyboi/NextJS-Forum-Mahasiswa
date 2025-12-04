@@ -29,7 +29,7 @@ export const CommunityHeroCarousel = ({ communities }: CommunityHeroCarouselProp
         <div className="mb-4">
             {/* Header with Trending Community and Explore All */}
             <div className="d-flex justify-content-between align-items-center mb-2">
-                <h4 className="fw-bold m-0 text-dark">Trending Community</h4>
+                <h4 className="m-0 text-dark" style={{ fontWeight: 600, letterSpacing: '0.5px' }}>Trending Community</h4>
                 <button
                     className="btn btn-danger rounded-pill px-4 fw-bold text-white"
                     onClick={() => router.push('/community')}
@@ -98,8 +98,6 @@ export const CommunityHeroCarousel = ({ communities }: CommunityHeroCarouselProp
                             </p>
                             <div className="d-flex gap-3 justify-content-center justify-content-md-start opacity-75 small fw-bold">
                                 <span>{currentCommunity.members?.length || 0} Members</span>
-                                <span>•</span>
-                                <span>{currentCommunity.upvotes || 0} Upvotes</span>
                             </div>
                         </div>
                     </div>

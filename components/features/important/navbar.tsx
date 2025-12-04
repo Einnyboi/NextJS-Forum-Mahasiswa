@@ -328,7 +328,8 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     z-index: 1001;
                     border: 1px solid var(--border-color);
                     margin-top: 0.75rem !important;
-                    padding: 0.5rem 0;
+                    padding: 0.5rem;
+                    overflow: hidden;
                 }
 
                 /* Dropdown Item Styling */
@@ -337,13 +338,13 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     display: flex;
                     align-items: center;
                     gap: 0.8rem;
-                    padding: 0.8rem 1.2rem;
+                    padding: 0.8rem 1rem;
                     cursor: pointer;
                     transition: all 0.3s ease;
                     color: var(--secondary-color);
                     text-decoration: none;
-                    border-radius: 12px;
-                    margin: 0.2rem 0.5rem;
+                    border-radius: 8px;
+                    margin: 0.2rem 0;
                     font-weight: 500;
                 }
 
