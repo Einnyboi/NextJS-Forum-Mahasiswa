@@ -8,6 +8,7 @@ import { ThreadCard } from "@/components/features/thread/ThreadCard";
 import CommunityCard from "@/components/features/community/CommunityCard";
 import { api, PostData, CommunityData } from "@/lib/api";
 import { Paperclip } from 'lucide-react';
+
 // --- KOMPONEN MODAL CREATE POST (Khusus Komunitas) ---
 interface CreateModalProps {
     isOpen: boolean;
@@ -22,6 +23,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
     const [content, setContent] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [category, setCategory] = useState<'community' | 'event'>('community');
+    const [eventDate, setEventDate] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen) return null;
@@ -41,6 +43,12 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
         e.preventDefault();
         setIsSubmitting(true);
 
+        let dateString = new Date().toLocaleDateString('id-ID');
+        if (category === 'event' && eventDate) {
+            const dateObj = new Date(eventDate);
+            dateString = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
         const success = await api.posts.create({
             title,
             content,
@@ -48,7 +56,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
             author: userEmail || "Anonymous",
             category: category,
             communityId: communityId,
-            date: new Date().toLocaleDateString('id-ID'),
+            date: dateString,
             createdAt: new Date()
         });
 
@@ -58,6 +66,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
             setContent("");
             setImageUrl("");
             setCategory('community');
+            setEventDate("");
             onSubmit();
             onClose();
         } else {
@@ -81,10 +90,24 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, userEmail, communityId }: 
                             onChange={(e) => setCategory(e.target.value as 'community' | 'event')}
                             style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
                         >
-                            <option value="community">Generic Post</option>
+                            <option value="community">Post</option>
                             <option value="event">Event</option>
                         </select>
                     </div>
+
+                    {category === 'event' && (
+                        <div className="form-group mt-3">
+                            <label className="form-label">Event Date</label>
+                            <input
+                                type="date"
+                                className="form-input"
+                                value={eventDate}
+                                onChange={(e) => setEventDate(e.target.value)}
+                                required
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                            />
+                        </div>
+                    )}
 
                     <div className="form-group">
                         <label className="form-label">Topic Title</label>

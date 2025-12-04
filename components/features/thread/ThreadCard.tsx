@@ -12,12 +12,34 @@ function getAvatarColor(letter: string) {
     return colors[index];
 }
 
+// Helper: Format Date
+const formatDate = (date: any) => {
+    if (!date) return 'Just now';
+    try {
+        if (typeof date === 'object' && date.seconds) {
+            // Firestore Timestamp
+            return new Date(date.seconds * 1000).toLocaleDateString('id-ID');
+        }
+        if (date instanceof Date) {
+            return date.toLocaleDateString('id-ID');
+        }
+        if (typeof date === 'string') {
+            return date;
+        }
+    } catch (e) {
+        return 'Just now';
+    }
+    return 'Just now';
+};
+
 interface ThreadCardProps {
     thread: PostData;
     clickable?: boolean;
+    hideCommentAction?: boolean;
+    commentCount?: number; // NEW
 }
 
-export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
+export const ThreadCard = ({ thread, clickable = true, hideCommentAction = false, commentCount }: ThreadCardProps) => {
     const router = useRouter();
 
     // State Lokal untuk interaksi visual
@@ -25,7 +47,8 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
     const [downvotes, setDownvotes] = useState(thread.downvotes || 0);
     const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
-    const [localCommentCount, setLocalCommentCount] = useState(thread.commentCount || 0);
+    // Prioritize passed commentCount, then thread.commentCount, then 0
+    const [localCommentCount, setLocalCommentCount] = useState(commentCount ?? thread.commentCount ?? 0);
 
     // Get current user & fetch comment count if missing
     useEffect(() => {
@@ -41,9 +64,9 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
             }
         }
 
-        // Fetch comment count if it looks like it might be missing (0 could be real, but safe to check for older posts)
+        // Fetch comment count if it looks like it might be missing AND we didn't get a prop
         const fetchCommentCount = async () => {
-            if (thread.commentCount === undefined) {
+            if (commentCount === undefined && thread.commentCount === undefined) {
                 try {
                     const comments = await api.comments.getByPost(thread.id);
                     setLocalCommentCount(comments.length);
@@ -54,18 +77,25 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
         };
         fetchCommentCount();
 
-    }, [thread]);
+    }, [thread, commentCount]);
 
     // Update local count if prop changes
     useEffect(() => {
-        if (thread.commentCount !== undefined) {
+        if (commentCount !== undefined) {
+            setLocalCommentCount(commentCount);
+        } else if (thread.commentCount !== undefined) {
             setLocalCommentCount(thread.commentCount);
         }
-    }, [thread.commentCount]);
+    }, [thread.commentCount, commentCount]);
 
     // Ambil inisial nama untuk avatar
     const initial = thread.author ? thread.author.charAt(0).toUpperCase() : '?';
     const voteScore = upvotes - downvotes;
+
+    // Determine Display Date
+    const displayDate = thread.category === 'event'
+        ? (thread.createdAt ? formatDate(thread.createdAt) : (thread.date || 'Just now'))
+        : (thread.date || 'Just now');
 
     const handleCardClick = (e: React.MouseEvent) => {
         if (clickable) {
@@ -152,7 +182,7 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
                         <div className="d-flex align-items-center gap-2">
                             <span className="author-name small fw-bold">{thread.author}</span>
                             <span className="text-muted small">•</span>
-                            <span className="post-date small text-muted">{thread.date || 'Just now'}</span>
+                            <span className="post-date small text-muted">{displayDate}</span>
                         </div>
                     </div>
 
@@ -219,6 +249,13 @@ export const ThreadCard = ({ thread, clickable = true }: ThreadCardProps) => {
                     <Share2 size={18} />
                     <span>Share</span>
                 </div>
+
+                {/* Event Date (Only for Events) */}
+                {thread.category === 'event' && thread.date && (
+                    <div className="ms-auto d-flex align-items-center gap-2 text-danger small fw-bold">
+                        <span>Event Date: {thread.date}</span>
+                    </div>
+                )}
             </div>
         </div>
     );

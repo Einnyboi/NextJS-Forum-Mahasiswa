@@ -112,10 +112,10 @@ export default function ThreadDetailPage() {
                     {loading ? (
                         <p className="state-message">Loading discussion...</p>
                     ) : post ? (
-                        <>
+                        <div className="right-panel-card">
                             {/* Back Button & Header */}
-                            <div className="d-flex align-items-center mb-3 position-relative mt-4">
-                                <div className="bg-white p-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', zIndex: 2 }}>
+                            <div className="d-flex align-items-center mb-4 gap-3">
+                                <div className="bg-light p-2 rounded-3 d-inline-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', cursor: 'pointer' }}>
                                     <button
                                         onClick={() => {
                                             if (post.communityId) {
@@ -125,21 +125,25 @@ export default function ThreadDetailPage() {
                                             }
                                         }}
                                         className="btn btn-link text-decoration-none p-0 d-flex align-items-center justify-content-center text-dark"
+                                        style={{ width: '100%', height: '100%' }}
                                     >
                                         <span className="fw-bold fs-5">&lt;</span>
                                     </button>
                                 </div>
-                                <div className="flex-grow-1 ms-3" style={{ borderBottom: '1px solid black' }}></div>
-                                <div className="position-absolute start-50 translate-middle-x px-3" style={{ backgroundColor: 'var(--primary-color)', zIndex: 1 }}>
-                                    <span className="fw-bold fs-4 text-dark">Threads</span>
-                                </div>
+                                <h2 className="m-0 fw-bold fs-4 text-dark">Threads</h2>
                             </div>
 
-                            {/* TAMPILKAN POST UTAMA (Tidak bisa diklik lagi) */}
-                            <ThreadCard thread={post} clickable={false} hideCommentAction={true} />
+                            {/* TAMPILKAN POST UTAMA */}
+                            <div className="mb-4">
+                                <ThreadCard
+                                    thread={post}
+                                    clickable={false}
+                                    commentCount={comments.length}
+                                />
+                            </div>
 
                             {/* BAGIAN KOMENTAR */}
-                            <div className="mt-4 p-4 bg-white rounded-4 shadow-sm" style={{ borderRadius: '16px' }}>
+                            <div className="mt-4">
                                 <h4 className="fw-bold mb-4">Comments ({comments.length})</h4>
 
                                 {/* Form Komentar */}
@@ -243,7 +247,7 @@ export default function ThreadDetailPage() {
                                     )}
                                 </div>
                             </div>
-                        </>
+                        </div>
                     ) : (
                         <p className="state-message">Post not found.</p>
                     )}
