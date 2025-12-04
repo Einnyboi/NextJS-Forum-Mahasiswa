@@ -23,7 +23,7 @@ export default function ProfileClient() {
   useEffect(() => {
     // read logged-in user from localStorage
     try {
-      const raw = typeof window !== 'undefined' ? window.localStorage.getItem('currentUser') : null;
+      const raw = typeof window !== 'undefined' ? window.localStorage.getItem('userSession') : null;
       if (!raw) {
         // redirect to login if no user
         router.push('/login');

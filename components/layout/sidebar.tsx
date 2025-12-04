@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { Home, Users, Calendar } from 'lucide-react';
-import { Card } from "@/components/layout/card";
+import { Card } from "@/components/features/important/card";
 
 interface SidebarProps {
     onMenuClick: (view: string) => void;

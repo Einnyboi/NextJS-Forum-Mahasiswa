@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { dbService } from '@/lib/db';
 
 const Login: React.FC = () => {
     const router = useRouter();
@@ -13,47 +14,63 @@ const Login: React.FC = () => {
     const ADMIN_EMAIL = 'admin@foma.com';
     const ADMIN_PASSWORD = 'admin123';
 
-    const handleLogin = async (e: React.FormEvent, type: 'user' | 'admin') => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
         try {
-            // Simulasi delay untuk UX
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Cek kredensial
-            if (type === 'admin') {
-                // Login sebagai admin
-                if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-                    // Simpan session ke localStorage
-                    localStorage.setItem('userSession', JSON.stringify({
-                        email: email,
-                        role: 'admin',
-                        isLoggedIn: true,
-                        fullName: 'Super Admin'
-                    }));
-                    router.push('/admin');
-                } else {
-                    setError('Email atau password admin salah!');
-                }
-            } else {
-                // Login sebagai user biasa
-                if (email === ADMIN_EMAIL) {
-                    setError('Anda Admin! Gunakan tombol "Login as Admin" di bawah.');
-                } else if (email && password) {
-                    // User biasa bisa login dengan email dan password apapun
-                    localStorage.setItem('userSession', JSON.stringify({
-                        email: email,
-                        role: 'user',
-                        isLoggedIn: true,
-                        fullName: 'User'
-                    }));
-                    router.push('/');
-                } else {
-                    setError('Email dan password harus diisi!');
-                }
+            // Validasi input
+            if (!email || !password) {
+                setError('Email dan password harus diisi!');
+                setLoading(false);
+                return;
             }
+
+            // Check admin first
+            if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+                localStorage.setItem('userSession', JSON.stringify({
+                    id: 'admin-1',
+                    email: email,
+                    role: 'admin',
+                    isLoggedIn: true,
+                    fullName: 'Super Admin'
+                }));
+                // Force full page reload to update navbar
+                window.location.href = '/admin';
+                return;
+            }
+
+            // Check regular user in Firebase
+            const user = await dbService.users.getByEmail(email);
+            
+            if (!user) {
+                setError('Email tidak ditemukan!');
+                setLoading(false);
+                return;
+            }
+
+            // Check password
+            if (user.password !== password) {
+                setError('Password salah!');
+                setLoading(false);
+                return;
+            }
+
+            // Login success - save complete user data
+            localStorage.setItem('userSession', JSON.stringify({
+                id: user.id,
+                email: user.email,
+                role: user.role || 'user',
+                isLoggedIn: true,
+                fullName: user.fullName || user.name || 'User',
+                avatarUrl: user.avatarUrl || '/default-avatar.png',
+                joinDate: user.registrationDate || user.joinDate
+            }));
+            
+            // Force full page reload to update navbar
+            window.location.href = '/';
+
         } catch (err: any) {
             console.error(err);
             setError('Terjadi kesalahan saat login.');
@@ -80,6 +97,22 @@ const Login: React.FC = () => {
                     display: block; width: 100%; padding: 0.9rem 1.5rem; border: none; border-radius: 8px;
                     background-color: var(--error-red); color: var(--white-color); font-weight: 700;
                     margin-top: 1rem; cursor: pointer;
+                    font-family: var(--main-font);
+                    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(194, 1, 20, 0.2);
+                }
+                .loginBtn:hover:not(:disabled) {
+                    background: #a00110;
+                    transform: translateY(-1px);
+                    box-shadow: 0 6px 20px rgba(194, 1, 20, 0.3);
+                    color: var(--white-color);
+                }
+                .loginBtn:disabled {
+                    background: rgba(12, 18, 12, 0.1);
+                    cursor: not-allowed;
+                    transform: none;
+                    box-shadow: none;
+                    color: rgba(12, 18, 12, 0.5);
                 }
                 .adminBtn {
                     display: block; width: 100%; padding: 0.9rem 1.5rem; 
@@ -117,22 +150,13 @@ const Login: React.FC = () => {
                         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                     </div>
 
-                    {/* TOMBOL USER */}
+                    {/* SATU TOMBOL UNTUK SEMUA */}
                     <button
                         className="loginBtn"
-                        onClick={(e) => handleLogin(e, 'user')}
+                        onClick={handleLogin}
                         disabled={loading}
                     >
                         {loading ? 'Processing...' : 'Login'}
-                    </button>
-
-                    {/* TOMBOL ADMIN */}
-                    <button
-                        className="adminBtn"
-                        onClick={(e) => handleLogin(e, 'admin')}
-                        disabled={loading}
-                    >
-                        Login as Admin
                     </button>
                 </form>
             </div>
