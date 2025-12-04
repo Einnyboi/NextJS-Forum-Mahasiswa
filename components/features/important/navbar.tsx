@@ -1,5 +1,6 @@
 'use client'
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
@@ -12,10 +13,29 @@ interface AppNavbarProps
 {
     onNavChange: (view: string) => void;
     isLoggedIn: boolean;
+    hideSearchInput?: boolean; 
 }
 
-function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps) 
+function AppNavbar({ onNavChange, isLoggedIn, hideSearchInput = false }: AppNavbarProps) 
 {
+    const router = useRouter();
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            router.push(`/search`);
+        }
+    };
+    type SearchInputEvent = MouseEvent<FormControlElement> | FocusEvent<FormControlElement>;
+    const handleSearchAction = (e: SearchInputEvent) => {
+        // Pastikan kita menggunakan router dan belum berada di halaman '/search'
+        if (router && !pathname.startsWith('/search')) {
+            // Navigasi ke halaman /search TANPA query (?q=)
+            router.push('/search');
+        }
+    };
+
     const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
         e.preventDefault();
@@ -145,39 +165,43 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                         Foma
                     </Navbar.Brand>
 
-                    <Form 
-                        className="d-none d-lg-flex search **flex-grow-1 mx-auto**" 
-                        style={{ maxWidth: '500px' }}
-                    >
-                        <Form.Control
-                            type="search"
-                            placeholder="Searching for something?"
-                            className="me-0"
-                            aria-label="Search"
-                        />
-                        <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
-                            <Search size={25} />
-                        </Button>
-                    </Form>
-
-                    <div className="d-flex d-lg-none align-items-center flex-grow-1 justify-content-end">
-                        <Form className="d-flex search-mobile me-2">
+                    {!hideSearchInput &&(
+                        <Form className="d-flex search" 
+                            onSubmit={(e) => { 
+                                e.preventDefault(); 
+                                // Jika pengguna mengisi teks dan menekan Enter, bawa query-nya
+                                const trimmedQuery = searchQuery.trim();
+                                if (router) {
+                                    if (trimmedQuery !== '') {
+                                        router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
+                                    } else {
+                                        router.push('/search');
+                                    }
+                                }
+                            }}
+                        >
                             <Form.Control
                                 type="search"
-                                placeholder="Search..."
+                                placeholder="Searching for something?"
                                 className="me-0"
                                 aria-label="Search"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onClick={handleSearchAction}
+                                onFocus={handleSearchAction}
                             />
-                            <Button variant="outline-success" className="search-button p-2 flex items-center justify-center" style={{ width: '40px' }}>
+                            <Button 
+                                type="submit"
+                                variant="outline-success" 
+                                className="search-button p-2 flex items-center justify-center" 
+                                style={{ width: '40px' }}
+                            >
                                 <Search size={25} />
                             </Button>
                         </Form>
-                        <Navbar.Toggle aria-controls="navbarScroll" className='ms-2 border-0 p-0 navbar-mobile-toggle' />
-                    </div>
-
-                    <div className="d-none d-lg-flex align-items-center ms-3">
-                        {desktopAuthContent()}
-                    </div>
+                    )}
+                    
+                    {checking()}
                 </Container>
 
                 <Navbar.Collapse id="navbarScroll" className="navbar-menu-mobile">
