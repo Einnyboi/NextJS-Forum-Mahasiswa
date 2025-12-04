@@ -1,5 +1,6 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
@@ -8,25 +9,37 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { Search, Github as User, LogOut, History } from 'lucide-react';
 
-interface AppNavbarProps
+function AppNavbar() 
 {
-    onNavChange: (view: string) => void;
-    isLoggedIn: boolean;
-}
+    const router = useRouter();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps) 
-{
+    // Check login status on mount
+    useEffect(() => {
+        const checkAuth = () => {
+            const session = typeof window !== 'undefined' ? localStorage.getItem('userSession') : null;
+            setIsLoggedIn(!!session);
+        };
+        
+        checkAuth();
+    }, []);
+
     const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
         e.preventDefault();
-        onNavChange('login'); 
+        router.push('/login');
     }
 
     const handleSignupClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
         e.preventDefault();
-        onNavChange('signup');
+        router.push('/signup');
     }
+
+    const handleLogout = () => {
+        localStorage.removeItem('userSession');
+        window.location.href = '/';
+    };
 
     const checking = () =>
     {
@@ -39,16 +52,24 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                         id="navbarScrollingDropdown" 
                         align="end"
                     >
-                        <NavDropdown.Item href="profile.tsx">
+                        <NavDropdown.Item href="/profile">
                             <User size={18} className="me-2" />
                             Profile
                         </NavDropdown.Item>
-                        <NavDropdown.Item href="history.tsx">
+                        <NavDropdown.Item href="/user-history">
                             <History size={18} className="me-2" />
                             History
                         </NavDropdown.Item>
                         <NavDropdown.Divider />
-                        <NavDropdown.Item href="#logout">
+                        <NavDropdown.Item 
+                            as="button" 
+                            onClick={(e: React.MouseEvent) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleLogout();
+                            }}
+                            type="button"
+                        >
                             <LogOut size={18} className="me-2" />
                             Logout
                         </NavDropdown.Item>

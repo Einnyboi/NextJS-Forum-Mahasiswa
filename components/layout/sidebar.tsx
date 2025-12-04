@@ -1,27 +1,41 @@
-'use client'
+'use client';
 import React from 'react';
 import { Home, Users, Calendar } from 'lucide-react';
-import { Card } from "@/components/layout/card";
+import { Card } from "@/components/features/important/card";
 
-const Sidebar = () => {
-    // Sidebar menu items
+interface SidebarProps {
+    onMenuClick: (view: string) => void;
+    activeView: string;
+}
+
+const Sidebar = ({ onMenuClick, activeView }: SidebarProps) => {
+    
     const menuItems = [
-        { name: "Home", icon: Home, href: "#threads", isActive: true },
-        { name: "Community", icon: Users, href: "#community", isActive: false },
-        { name: "Event", icon: Calendar, href: "#event", isActive: false },
+        { id: "home", name: "Home", icon: Home },
+        { id: "community", name: "Community", icon: Users },
+        { id: "event", name: "Event", icon: Calendar },
     ];
 
     return (
+        // Class 'sidebar-card' sekarang diambil dari globals.css
         <Card title="" className="sidebar-card">
             <ul className="sidebar-list">
-                {menuItems.map(link => (
-                    <li key={link.name}>
-                        <a href={link.href} className="sidebar-link">
-                            <link.icon size={20} />
-                            <span>{link.name}</span>
-                        </a>
-                    </li>
-                ))}
+                {menuItems.map(item => {
+                    const isActive = activeView === item.id;
+                    
+                    return (
+                        <li key={item.id}>
+                            <div 
+                                onClick={() => onMenuClick(item.id)} 
+                                // Class 'sidebar-link' dan 'active' diambil dari globals.css
+                                className={`sidebar-link ${isActive ? 'active' : ''}`}
+                            >
+                                <item.icon size={20} />
+                                <span>{item.name}</span>
+                            </div>
+                        </li>
+                    );
+                })}
             </ul>
         </Card>
     );

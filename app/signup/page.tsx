@@ -31,7 +31,7 @@ interface ErrorState
     general?: string;
 }
 
-const signup: React.FC = () =>
+const Signup: React.FC = () =>
 {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
@@ -344,4 +344,4 @@ const signup: React.FC = () =>
     );
 };
 
-export default signup;
+export default Signup;

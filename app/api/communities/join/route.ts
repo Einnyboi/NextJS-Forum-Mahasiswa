@@ -1,6 +1,5 @@
-// app/api/communities/join/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { dbService as db } from '@/lib/db';
+import { dbService } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,37 +8,28 @@ export async function POST(request: NextRequest) {
 
     if (!userId || !communityId) {
       return NextResponse.json(
-        { message: 'Missing userId or communityId' },
+        { error: 'User ID and Community ID are required' },
         { status: 400 }
       );
     }
 
-    // Verify user and community exist
-    const user = await db.users.getById(userId);
-    const community = await db.communities.getById(communityId);
+    const result = await dbService.communities.join(userId, communityId);
 
-    if (!user || !community) {
+    if (result.success) {
+      return NextResponse.json({ 
+        message: 'Successfully joined community',
+        success: true 
+      });
+    } else {
       return NextResponse.json(
-        { message: 'User or community not found' },
-        { status: 404 }
+        { error: 'Failed to join community', details: result.error },
+        { status: 500 }
       );
     }
-
-    // Check if already a member
-    const isMember = await db.communities.isMember(userId, communityId);
-    if (isMember) {
-      return NextResponse.json(
-        { message: 'User is already a member of this community' },
-        { status: 400 }
-      );
-    }
-
-    const result = await db.communities.join(userId, communityId);
-    return NextResponse.json(result);
   } catch (error) {
     console.error('Error joining community:', error);
     return NextResponse.json(
-      { message: 'Failed to join community' },
+      { error: 'Failed to join community' },
       { status: 500 }
     );
   }

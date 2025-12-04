@@ -14,7 +14,7 @@ interface AppNavbarProps
     isLoggedIn: boolean;
 }
 
-function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps) 
+function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps) 
 {
     const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
@@ -28,6 +28,11 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
         onNavChange('signup');
     }
 
+    const handleLogout = () => {
+        localStorage.removeItem('userSession');
+        window.location.href = '/';
+    };
+
     const checking = () =>
     {
         if (isLoggedIn)
@@ -39,16 +44,24 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
                         id="navbarScrollingDropdown" 
                         align="end"
                     >
-                        <NavDropdown.Item href="profile.tsx">
+                        <NavDropdown.Item href="/profile">
                             <User size={18} className="me-2" />
                             Profile
                         </NavDropdown.Item>
-                        <NavDropdown.Item href="history.tsx">
+                        <NavDropdown.Item href="/user-history">
                             <History size={18} className="me-2" />
                             History
                         </NavDropdown.Item>
                         <NavDropdown.Divider />
-                        <NavDropdown.Item href="#logout">
+                        <NavDropdown.Item 
+                            as="button"
+                            onClick={(e: React.MouseEvent) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleLogout();
+                            }}
+                            type="button"
+                        >
                             <LogOut size={18} className="me-2" />
                             Logout
                         </NavDropdown.Item>
@@ -82,7 +95,7 @@ function AppNavbar({ onNavChange , isLoggedIn }: AppNavbarProps)
             <Navbar expand="lg" className='navigation'>
                 <Container fluid>
                     <Navbar.Brand
-                        href='#'
+                        href='/'
                         className="navi-title"
                     >
                         Foma

@@ -2,6 +2,9 @@
 // the schemas for our "tables"
 
 export type User = {
+  role: string;
+  password: string;
+  fullName: string;
   id: string;
   name: string;
   avatarUrl: string;
@@ -13,10 +16,14 @@ export type User = {
 
 export type Community = {
   id: string;
-  name: string;
+  name: string; // Display name (can have duplicates)
+  handle: string; // Unique identifier like @community-handle
   imageUrl: string;
   description?: string; // Optional: Good for the header
   memberCount?: number; // Optional: Good for sorting popularity
+  upvotes?: number; // NEW: Total upvotes
+  downvotes?: number; // NEW: Total downvotes
+  votedBy?: { [userId: string]: 'up' | 'down' }; // NEW: Track who voted and how
 };
 
 export type Event = {
@@ -35,18 +42,9 @@ export type Post = {
   communityId: string;
   authorId: string;
 
-  // fetched from the other 'tables'
-  communityName: string;
-  communityImageUrl: string;
-  authorName: string;
-  authorAvatarUrl: string;
-
   title: string;
-  content: string;
-  tag: string | null; // e.g. "Discussion", "Question", etc.
-
-  // Metadata
-  createdAt: string; // ISO String
-  likeCount: number;
-  commentCount: number;
+  description: string;
+  category: string;
+  author?: string; // Hanya ada untuk Post dan User
+  imageUrl?: string;
 };

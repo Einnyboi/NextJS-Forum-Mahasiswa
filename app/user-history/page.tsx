@@ -1,100 +1,200 @@
 'use client'
-import React from "react";
-import { historyData} from "@/lib/historydata";
-import { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { api } from "@/lib/api";
+import { Post } from '@/lib/types';
+import Navbar from '@/components/features/important/navbar';
+import Sidebar from '@/components/features/important/sidebar';
 
 export default function HistoryPage() {
     const [sortBy, setSortBy] = useState('newest');
+    const [posts, setPosts] = useState<Post[]>([]); 
+    const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+    const [user, setUser] = useState<any>(null);
 
-    // Tambahkan tipe untuk event
+    // Get user from localStorage
+    const getCurrentUserId = () => {
+        if (typeof window === 'undefined') return null;
+        const sessionData = localStorage.getItem('userSession');
+        if (!sessionData) return null;
+        try {
+            const parsed = JSON.parse(sessionData);
+            return parsed?.id || parsed?.uid || parsed?.userId || null;
+        } catch {
+            return null;
+        }
+    };
+
+    // Check user session
+    useEffect(() => {
+        const checkUserSession = () => {
+            try {
+                const sessionData = localStorage.getItem('userSession');
+                if (sessionData) {
+                    const session = JSON.parse(sessionData);
+                    if (session.isLoggedIn) {
+                        setUser(session);
+                    }
+                } else {
+                    setUser(null);
+                }
+            } catch (error) {
+                console.error("Error reading session:", error);
+                setUser(null);
+            }
+        };
+
+        checkUserSession();
+        window.addEventListener('storage', checkUserSession);
+        return () => window.removeEventListener('storage', checkUserSession);
+    }, []);
+
+    // LOGIKA FETCHING DATA
+    useEffect(() => {
+        const currentUserId = getCurrentUserId();
+        
+        if (!currentUserId) {
+            setPosts([]); 
+            return;
+        }
+
+        const loadPosts = async () => {
+            setIsLoadingPosts(true); 
+            try {
+                // Panggil API Fetcher dengan ID pengguna yang sudah login
+                const data: Post[] = await api.posts.getUserPosts(currentUserId);
+                setPosts(data);
+            } catch (error) {
+                console.error("Error fetching user history:", error);
+                setPosts([]); 
+            } finally {
+                setIsLoadingPosts(false);
+            }
+        };
+
+        loadPosts();
+    }, []);
+    
+    // Handler untuk perubahan sorting
     const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSortBy(event.target.value);
     };
 
     const sortedActivities = useMemo(() => {
-        // pake historyData
-        const sortableItems = [...historyData]; 
+        const sortableItems = [...posts]; 
 
         switch (sortBy) {
             case 'oldest':
-                return sortableItems.sort((a, b) => a.date.getTime() - b.date.getTime());
+                // mengurutkan dari tanggal terlama ke terbaru
+                return sortableItems.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
             case 'most-likes':
-                return sortableItems.sort((a, b) => b.likes - a.likes);
+                // megurutkan dari yang paling banyak like
+                return sortableItems.sort((a, b) => b.likeCount - a.likeCount);
             case 'most-comments':
-                return sortableItems.sort((a, b) => b.replies - a.replies);
+                // mengurutkan dari yang paling banyak komentar
+                return sortableItems.sort((a, b) => b.commentCount - a.commentCount);
             case 'newest':
-            default:
-                return sortableItems.sort((a, b) => b.date.getTime() - a.date.getTime());
+            default: // default untuk 'newest' 
+                // mengurutkan dari tanggal terbaru ke terlama
+                return sortableItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         }
-    }, [sortBy]);
+    }, [sortBy, posts]);
+
+    // Conditional Rendering Content
+    let content;
+
+    if (isLoadingPosts) {
+        content = <p className="text-center text-muted py-5">Loading your post history...</p>;
+    } else if (sortedActivities.length === 0) {
+        content = <p className="text-center text-muted py-5">No activities found for this user.</p>;
+    } else {
+        // Tampilan List Postingan Normal
+        content = (
+            <div id="activity-container">
+                {sortedActivities.map(post => {
+                    const formattedDate = new Date(post.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                    return ( 
+                        <article className="card activity-post-card p-5 mb-4 rounded-4" style={{ backgroundColor: 'var(--primary-color)' }} key={post.id}>
+                            <h5 className="post-title pb-2" style={{fontSize:'var(--h5-size)'}}>
+                                <Link href={`/posts/${post.id}`}>{post.title}</Link>
+                            </h5>
+                            
+                            <div className="small text-secondary mb-2">
+                                Posted in 
+                                <Link className="text-secondary hover-underline ms-1 fw-bold" id="kategori" href={`/community/${post.communityId}`}>{post.communityName}</Link>
+                                {post.tag && <span className="text-muted ms-2">| {post.tag}</span>}
+                            </div>
+
+                            <p className="mb-3" style={{color:'var(--secondary-color)'}}>{post.content}</p>
+
+                            <div className="pt-2 small text-muted border-top border-secondary d-flex gap-2">
+                                <span>{formattedDate}</span> <span>|</span> 
+                                <span>{post.likeCount} Likes</span> <span>|</span> 
+                                <span>{post.commentCount} Replies</span>
+                            </div>
+                        </article>
+                    );
+                })}
+            </div>
+        );
+    }
 
     return (
-        <main className="font-sans">
+        <div>
             <Head>
                 <title>History User</title>
             </Head>
 
-            <div className="min-h-screen bg-secondary py-10 font-sans">
-                <div className="max-w-4xl mx-auto p-4">
-                    <div className="mb-6">
+            {/* NAVBAR DITEMPATKAN DI LUAR CONTAINER UTAMA */}
+            <Navbar 
+                onNavChange={() => {}}
+                isLoggedIn={!!user}
+            />
+            
+            <div className="main-container hide-scrollbar">
+                <div className="main-dashboard-layout">
+                    
+                    {/* SIDEBAR DITEMPATKAN DI KIRI */}
+                    <Sidebar />
+                    
+                    {/* KONTEN UTAMA HISTORY DITEMPATKAN DI KANAN */}
+                    <div className="main-content px-5">
+                        <main className="font-sans">
+                            <div className="min-vh-100 py-5" style={{ backgroundColor: 'var(--white-color)' }}>
+                                <div className="container px-5 pb-3">
+                                    <div className="mb-4">
 
-                        {/* Header dan Filter */}
-                        <div className="flex justify-between items-center mb-10 pb-5 border-b border-gray-500">
-                            <h2 className="text-[2.488rem] font-bold text-brand-black font-lato mb-0 ">History</h2>
-                            <div className="flex items-center space-x-2 mt-5">
-                                <label htmlFor="filter-select" className="text-[1.2rem] text-brand-black ">Sort by:</label>
-                                <select
-                                    name="filter"
-                                    id="filter-select"
-                                    value={sortBy}
-                                    onChange={handleSortChange}
-                                    className="p-1 border border-gray-100 rounded-md text-[1rem]"
-                                >
-                                    <option value="newest">Newest</option>
-                                    <option value="oldest">Oldest</option>
-                                    <option value="most-likes">Most Liked</option>
-                                    <option value="most-comments">Most Commented</option>
-                                </select>
+                                        {/* Header dan Filter */}
+                                        <div className="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom border-secondary-subtle">
+                                            <h2 className="h2 fw-bold" style={{ fontSize: '2.488rem', fontFamily: 'var(--h2-size)'}}>History</h2>
+                                            <div className="d-flex align-items-center gap-2 mt-3">
+                                                <label htmlFor="filter-select" className="fs-5" style={{color:'var(--secondary-color)'}}>Sort by:</label>
+                                                <select
+                                                    name="filter"
+                                                    id="filter-select"
+                                                    value={sortBy}
+                                                    onChange={handleSortChange}
+                                                    className="form-select form-select-sm border rounded-3 fs-6" style={{ width: 'auto' }}
+                                                >
+                                                    <option value="newest">Newest</option>
+                                                    <option value="oldest">Oldest</option>
+                                                    <option value="most-likes">Most Liked</option>
+                                                    <option value="most-comments">Most Commented</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Container Daftar Aktivitas User */}
+                                        {content}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-
-                        {/* Container Daftar Aktivitas User */}
-                        <div id="activity-container">
-
-                            {/* Pindahkan deklarasi const di dalam map, sebelum return */}
-                            {sortedActivities.map(post => {
-                                // Deklarasi variabel (di dalam scope fungsi map)
-                                const formattedDate = post.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-                                return ( 
-                                    <article className="bg-primary p-10 mb-5 rounded-xl text-brand-black bg-primary transition duration-300 ease-in-out 
-                                                        hover:bg-[#b8c5c4] hover:-translate-y-0.5 hover:shadow-xl font-sans" key={post.id}>
-                                        
-                                        {/* Baris Judul */}
-                                        <h5 className="text-[1.44rem] font-bold mb-1 text-brand-black hover:text-secondary font-lato pb-3"><Link href={post.url}>{post.title}</Link></h5>
-
-                                        <div className="text-sm text-brand-black mb-2">
-                                            {/* Tipe Aktivitas dan Kategori */}
-                                            <span className="font-semibold">{post.type}</span> in category 
-                                            <Link className="text-red-600 hover:underline ml-1 font-medium" id="kategori" href={`/category/${post.category}`}>{post.category}</Link>
-                                        </div>
-
-                                        {/* Konten/Excerpt */}
-                                        <p className="text-brand-black mb-3">{post.content}</p>
-
-                                        {/* Footer */}
-                                        <div className="pt-2 text-xs text-gray-800 border-t border-gray-500 flex space-x-2">
-                                            <span>{formattedDate}</span> <span>|</span> <span>{post.likes} Likes</span> <span>|</span> <span>{post.replies} Replies</span>
-                                        </div>
-                                    </article>
-                                );
-                            })}
-                        </div>
+                        </main>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
     );
 }

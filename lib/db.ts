@@ -1,4 +1,8 @@
-// lib/db.ts - THE REAL DATABASE LAYER
+// lib/db.ts
+// this is the database layer, routes (app/api/...) rely on this to talk to firebase
+// the difference with api.ts is that this one is backend only
+// this file handles things like complex queries, joins, transactions, etc
+
 import { db } from '@/lib/firebase';
 import { 
   collection, 
@@ -12,11 +16,17 @@ import {
   query, 
   where 
 } from 'firebase/firestore';
-import { Post, Community, User } from './types';
+import { Post, Community, User, SearchResult } from './types';
 import { get } from 'http';
 
-// Helper to convert Firestore snapshots to our Types
 const snapToData = (doc: any) => ({ id: doc.id, ...doc.data() });
+
+// Fungsi utilitas untuk pencarian partial match (case-insensitive).
+const isPartialMatch = (text: string | undefined, query: string): boolean => {
+    if (!text) return false;
+    // Konversi ke lowercase untuk pencarian yang tidak sensitif huruf besar/kecil
+    return text.toLowerCase().includes(query.toLowerCase());
+};
 
 export const dbService = {
   // ==============================
@@ -41,6 +51,12 @@ export const dbService = {
       return snapshot.docs.map(doc => snapToData(doc) as Post);
     },
 
+    getByAuthor: async (authorId: string): Promise<Post[]> => {
+      const q = query(collection(db, 'posts'), where('authorId', '==', authorId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => snapToData(doc) as Post);
+    },
+
     create: async (postData: any) => {
       // This replaces "posts.push()"
       // Firebase automatically generates the ID
@@ -51,7 +67,13 @@ export const dbService = {
         commentCount: 0,
       });
       return { id: docRef.id, ...postData };
-    }
+    },
+    // FUNGSI BARU UNTUK HISTORY USER
+    getUserPosts: async (userId: string) => {
+      const q = query(collection(db, 'posts'), where('authorId', '==', userId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => snapToData(doc) as Post);
+    },
   },
 
   // ==============================
@@ -69,18 +91,12 @@ export const dbService = {
       return snapshot.exists() ? (snapToData(snapshot) as Community) : null;
     },
 
-    // This handles the complex logic of joining a community
     join: async (userId: string, communityId: string) => {
       try {
-        // 1. Add community ID to the User's 'joinedCommunityIds' array
         const userRef = doc(db, 'users', userId);
         await updateDoc(userRef, {
           joinedCommunityIds: arrayUnion(communityId)
         });
-
-        // 2. (Optional) Increment member count on Community
-        // Note: Real apps usually use Cloud Functions for counters to be safe
-        
         return { success: true };
       } catch (error) {
         console.error(error);
@@ -105,14 +121,32 @@ export const dbService = {
       
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        // Check if the array exists AND includes the ID
         return userData.joinedCommunityIds?.includes(communityId) || false;
       }
       return false;
     },
   },
 
+  // ==============================
+  // EVENTS
+  // ==============================
+  events: {
+    getUpcoming: async (): Promise<any[]> => {
+      const now = new Date().toISOString();
+      const q = query(collection(db, 'events'), where('date', '>=', now));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => snapToData(doc));
+    },
+    getById: async (id: string): Promise<any | null> => {
+        const docRef = doc(db, 'events', id);
+        const snapshot = await getDoc(docRef);
+        return snapshot.exists() ? snapToData(snapshot) : null;
+    }
+  },
 
+  // ==============================
+  // COMMENTS
+  // ==============================
   comments: {
     create: async (commentData: any) => {
       const docRef = await addDoc(collection(db, 'comments'), {
@@ -136,6 +170,73 @@ export const dbService = {
       const docRef = doc(db, 'users', id);
       const snapshot = await getDoc(docRef);
       return snapshot.exists() ? (snapToData(snapshot) as User) : null;
+    },
+    getByEmail: async (email: string): Promise<User | null> => {
+      const q = query(collection(db, 'users'), where('email', '==', email));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        return null;
+      }
+      return snapToData(snapshot.docs[0]) as User;
+    },
+    getProfile: async (): Promise<User | null> => {
+      // For simplicity, we return a hardcoded user ID
+      const userId = 'user-123'; // Replace with actual auth logic
+      return dbService.users.getById(userId);
+    },
+    update: async (id: string, data: Partial<User>) => {
+      const userRef = doc(db, 'users', id);
+      await updateDoc(userRef, data);
+      return { id, ...data };
     }
-  }
+  },
+  // ==============================
+  // SEARCH
+  // ==============================
+  search: {
+    getResults: async (query: string): Promise<SearchResult[]> => {
+        if (!query) return [];        
+        const results: SearchResult[] = [];
+        // mengambil SEMUA Komunitas 
+        const communitiesSnapshot = await getDocs(collection(db, 'communities'));
+        communitiesSnapshot.docs.forEach(doc => {
+          const data = doc.data() as Community;    
+           // Cari di Nama ATAU Deskripsi Komunitas
+          if (isPartialMatch(data.name, query) || isPartialMatch(data.description, query)) {
+            results.push({
+              id: doc.id,
+              type: 'community',
+              title: data.name,
+              description: data.description || 'No description provided.',
+              category: 'Community', 
+              imageUrl: data.imageUrl,
+            } as SearchResult);
+          }
+        });
+
+         // Ambil SEMUA Postingan
+        const postsSnapshot = await getDocs(collection(db, 'posts'));
+
+        postsSnapshot.docs.forEach(doc => {
+          const data = doc.data() as Post;
+                
+          // Cari di Title ATAU Content Postingan
+          if (isPartialMatch(data.title, query) || isPartialMatch(data.content, query)) {
+            results.push({
+                id: doc.id,
+                type: 'post',
+                title: data.title,
+                // Ambil 100 karakter pertama sebagai deskripsi
+                description: data.content.substring(0, 100) + (data.content.length > 100 ? '...' : ''), 
+                category: data.communityName, 
+                author: data.authorName,
+                imageUrl: data.communityImageUrl,
+            } as SearchResult);
+          }
+        });
+
+        return results;
+    }
+  },
 };
