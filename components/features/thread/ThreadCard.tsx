@@ -49,6 +49,7 @@ export const ThreadCard = ({ thread, clickable = true, hideCommentAction = false
     const [userEmail, setUserEmail] = useState<string | null>(null);
     // Prioritize passed commentCount, then thread.commentCount, then 0
     const [localCommentCount, setLocalCommentCount] = useState(commentCount ?? thread.commentCount ?? 0);
+    const [communityName, setCommunityName] = useState<string | null>(null);
 
     // Get current user & fetch comment count if missing
     useEffect(() => {
@@ -76,6 +77,21 @@ export const ThreadCard = ({ thread, clickable = true, hideCommentAction = false
             }
         };
         fetchCommentCount();
+
+        // Fetch Community Name if communityId exists
+        const fetchCommunityName = async () => {
+            if (thread.communityId) {
+                try {
+                    const community = await api.communities.getById(thread.communityId);
+                    if (community) {
+                        setCommunityName(community.name);
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch community name", e);
+                }
+            }
+        };
+        fetchCommunityName();
 
     }, [thread, commentCount]);
 
@@ -187,7 +203,7 @@ export const ThreadCard = ({ thread, clickable = true, hideCommentAction = false
                     </div>
 
                     <span className={`category-badge ${thread.category} ms-auto`} style={{ fontSize: '0.7rem' }}>
-                        {thread.category}
+                        {communityName ? communityName.toUpperCase() : thread.category}
                     </span>
                 </div>
 

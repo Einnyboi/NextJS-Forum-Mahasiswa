@@ -231,6 +231,14 @@ export const api = {
       } catch (e) { return []; }
     },
 
+    getById: async (communityId: string): Promise<CommunityData | null> => {
+      try {
+        const docRef = doc(db, "communities", communityId);
+        const docSnap = await getDoc(docRef);
+        return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as CommunityData : null;
+      } catch (e) { return null; }
+    },
+
     join: async (u: string, c: string) => {
       try { await updateDoc(doc(db, "communities", c), { members: arrayUnion(u) }); return true; }
       catch (e) { return false; }

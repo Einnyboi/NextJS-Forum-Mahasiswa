@@ -29,11 +29,11 @@ export const CommunityHeroCarousel = ({ communities }: CommunityHeroCarouselProp
         <div className="mb-4">
             {/* Header with Trending Community and Explore All */}
             <div className="d-flex justify-content-between align-items-center mb-2">
-                <h4 className="fw-bold m-0">Trending Community</h4>
+                <h4 className="fw-bold m-0 text-dark">Trending Community</h4>
                 <button
                     className="btn btn-danger rounded-pill px-4 fw-bold text-white"
                     onClick={() => router.push('/community')}
-                    style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }}
+                    style={{ backgroundColor: '#c20114', borderColor: '#c20114' }}
                 >
                     Explore All
                 </button>
@@ -64,8 +64,8 @@ export const CommunityHeroCarousel = ({ communities }: CommunityHeroCarouselProp
                             width: '40px',
                             height: '40px',
                             zIndex: 10,
-                            backgroundColor: '#dc3545', // Red
-                            border: '1px solid #dc3545',
+                            backgroundColor: '#c20114', // Red
+                            border: '1px solid #c20114',
                             color: 'white',
                             boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
                         }}
@@ -111,8 +111,8 @@ export const CommunityHeroCarousel = ({ communities }: CommunityHeroCarouselProp
                             width: '40px',
                             height: '40px',
                             zIndex: 10,
-                            backgroundColor: '#dc3545', // Red
-                            border: '1px solid #dc3545',
+                            backgroundColor: '#c20114', // Red
+                            border: '1px solid #c20114',
                             color: 'white',
                             boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
                         }}
