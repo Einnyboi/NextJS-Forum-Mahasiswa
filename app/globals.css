@@ -32,7 +32,7 @@ body {
     background-color: var(--primary-color) !important; 
     color: var(--secondary-color);
     line-height: 1.6;
-    padding-top: 72px !important; 
+    padding-top: 85px !important; 
     margin: 0;
     min-height: 100vh;
 }
@@ -46,7 +46,7 @@ a {
 .main-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding-top: 2rem;
+    padding-top: 0.5rem;
     padding-bottom: 2rem;
 }
 
@@ -61,12 +61,11 @@ a {
 
 /* === COMPONENTS: SIDEBAR === */
 .sidebar-card {
-    /* Sticky: Diam saat scroll, tapi tetap di dalam layout */
     position: sticky; 
-    top: 100px; /* Jarak dari Navbar */
+    top: 90px;
     
     width: 240px;
-    height: calc(100vh - 120px); /* Tinggi sisa layar */
+    height: calc(100vh - 120px);
     
     background-color: var(--white-color);
     padding: 2rem; 
@@ -77,8 +76,8 @@ a {
     border: 1px solid rgba(0,0,0,0.05);
     
     overflow-y: auto; 
-    z-index: 10;
-    flex-shrink: 0; /* Agar tidak mengecil */
+    z-index: 900;
+    flex-shrink: 0;
 }
 
 .sidebar-list {
@@ -99,6 +98,7 @@ a {
     font-weight: 500;
     transition: background-color 0.2s ease, color 0.2s ease;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .sidebar-link:hover {
@@ -112,6 +112,12 @@ a {
     font-weight: 600;
     box-shadow: 0 4px 10px rgba(194, 1, 20, 0.2);
 }
+
+.sidebar-link.active svg 
+{
+    stroke-width: 2.5px;
+}
+
 /* efek untuk card aktivitas user history dan hasil search */
 .activity-post-card ,.item-search{
     transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
@@ -148,14 +154,11 @@ a {
   border-color: #ced4da !important; 
 }
 
-.sidebar-link.active svg {
-    stroke-width: 2.5px;
-}
-
 /* === COMPONENTS: MAIN CONTENT === */
 .main-content {
-    flex-grow: 1; /* Mengisi sisa ruang */
+    flex-grow: 1;
     width: auto;
+    min-width: 0;
 }
 
 /* === COMPONENTS: THREADS & CARDS === */
@@ -190,16 +193,13 @@ a {
 
 .welcome-text {
     color: #6D7275;
-    font-size: 1rem;
-    margin-bottom: 1rem;
 }
 
 /* Thread Card */
 .thread-card {
-    background: var(--white-color);
+    background: #ffffff;
     padding: 1.8rem;
     border-radius: 16px;
-    margin-bottom: 1.5rem;
     border: 1px solid rgba(0,0,0,0.08);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative;
@@ -215,7 +215,7 @@ a {
 
 .thread-header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 1rem; font-size: 0.85rem;
+    margin-bottom: 1.5rem; font-size: 0.85rem;
 }
 
 .author-info { display: flex; align-items: center; gap: 10px; }
@@ -288,18 +288,26 @@ a {
 
 /* === MODAL STYLES === */
 .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 2000; backdrop-filter: blur(4px); animation: fadeIn 0.2s ease-out;
+    position: fixed; 
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    z-index: 9999; 
+    animation: fadeIn 0.2s ease-out;
 }
+
 .modal-content {
-    background: var(--white-color);
+    background: #ffffff !important;
     width: 100%; max-width: 500px;
     padding: 2rem; border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    position: relative; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative; 
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 .modal-title { font-size: 1.5rem; font-weight: 700; margin: 0; color: var(--secondary-color); }
 .btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; padding: 0; line-height: 1; }
@@ -324,14 +332,294 @@ a {
     .main-dashboard-layout {
         flex-direction: column;
         padding: 1rem;
+        gap: 1rem;
     }
-    .sidebar-card {
-        position: static;
+    .sidebar-card
+    {
+        position: sticky;
+        top: 85px;
+        z-index: 900;
         width: 100%;
         height: auto;
-        margin-bottom: 2rem;
+        padding: 0.8rem 1rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
     }
+
+    .sidebar-list
+    {
+        display: flex;
+        flex-direction: row;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .sidebar-link
+    {
+        margin-bottom: 0;
+        padding: 0.5rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .sidebar-link span
+    {
+        display: inline-block;
+    }
+
     .main-content {
         padding: 0;
+    }
+}
+
+/* buat sidebar */
+/* Sembunyikan tombol hamburger secara default */
+.hamburger-button {
+    display: none; 
+}
+
+/* Sidebar selalu terlihat di layar besar */
+.sidebar-card {
+    display: block; 
+    width: 250px; 
+    height: 100vh;
+}
+@media (max-width: 1024px) {
+    /* Tampilkan tombol hamburger di layar kecil */
+    .hamburger-button {
+        display: flex; 
+        position: fixed; 
+        top: 200px;
+        left: 5px;
+        z-index: 1001;
+        cursor: pointer;
+        width: 48px; 
+        height: 48px;
+        border-radius: 50%;
+        border: 2px solid #f4f6f8;
+        background-color: #c7d6d5;
+        padding: 0;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        color: #edeff1;
+    }
+
+    /* Sidebar di layar kecil: */
+    .sidebar-card {
+        /* Default: Sembunyikan sidebar di luar layar */
+        position: fixed;
+        top: 0;
+        left: -300px; 
+        width: 300px; 
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s ease-in-out;
+        background-color: white;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+    }
+    /* Status Terbuka: Geser sidebar ke dalam viewport */
+    .sidebar-card.is-open {
+        left: 0;
+    }
+    .main-content.hamburger-button.is-open {
+        background-color: transparent !important;
+        border: none !important;
+        color: transparent !important;
+        left: 270px !important;
+/* === RIGHT PANEL CARD (NEW) === */
+.right-panel-card {
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 120px);
+    background-color: var(--white-color);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    overflow-y: auto;
+    width: 100%;
+}
+
+/* === HERO CARD REDESIGN === */
+.hero-card {
+    background: #ffffff;
+    color: #000000;
+    border-radius: 24px;
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.hero-search-container {
+    display: none; /* Hide search container as requested */
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 60%;
+}
+
+.hero-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+    color: var(--secondary-color);
+}
+
+.hero-subtitle {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.hero-illustration {
+    position: absolute;
+    right: 2rem;
+    bottom: 0;
+    width: 35%;
+    height: 80%;
+    background-image: url('https://illustrations.popsy.co/amber/surr-working.svg'); /* Placeholder Illustration */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom right;
+    z-index: 1;
+    opacity: 0.9;
+}
+
+.community-pills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: auto;
+    position: relative;
+    z-index: 2;
+}
+
+.community-pill {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    color: var(--secondary-color);
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.community-pill:hover {
+    background: var(--secondary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.community-pill.active {
+    background: var(--error-red);
+    color: white;
+    font-weight: 600;
+    border-color: var(--error-red);
+}
+
+/* === HERO CAROUSEL & LAYOUT === */
+.hero-carousel-container {
+    position: absolute;
+    right: 2rem;
+    bottom: 2rem;
+    top: 2rem;
+    width: 45%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.hero-carousel-card {
+    background-color: #0c120c; /* Black background */
+    color: white;
+    border-radius: 20px;
+    padding: 1.2rem;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.hero-carousel-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.carousel-text-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.carousel-community-name {
+    font-family: 'Permanent Marker', cursive, var(--main-font); /* Fallback to main font if not loaded */
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+}
+
+.carousel-community-desc {
+    font-size: 0.85rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    font-family: 'Patrick Hand', cursive, var(--secondary-font); /* Handwriting style */
+}
+
+.carousel-stats {
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: 500;
+}
+
+.carousel-community-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    background-size: cover;
+    background-position: center;
+    border: 4px solid #ecebf3; /* White border */
+    flex-shrink: 0;
+}
+
+/* Push Explore button to the right - REMOVED as requested */
+.community-pills-container {
+    justify-content: flex-start; /* Default alignment */
+@media (max-width: 480px)
+{
+    .sidebar-link
+    {
+        padding: 0.5rem;
+    }
+    .sidebar-link span
+    {
+        display: none;
     }
 }

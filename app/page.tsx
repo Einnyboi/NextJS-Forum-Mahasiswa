@@ -8,51 +8,41 @@ import SignupForm from "./signup/page";
 import LoginForm from "./Login/page";
 import { api, PostData } from "@/lib/api";
 import { ThreadCard } from "@/components/features/thread/ThreadCard";
+import { CommunityHeroCarousel } from "@/components/features/home/CommunityHeroCarousel";
 import CreateCommunityForm from "@/components/features/community/CreateCommunityForm";
 
 // --- KOMPONEN FEED UTAMA (POSTS) ---
 const HomeContent = ({ user }: { user: any }) => {
   const [posts, setPosts] = useState<PostData[]>([]);
+  const [communities, setCommunities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
+  const router = useRouter();
 
-  // Fetch Data Postingan
-  const fetchPosts = async () => {
+  // Fetch Data Postingan dan Komunitas
+  const fetchData = async () => {
     setLoading(true);
-    const data = await api.posts.getAll();
-    setPosts(data);
-    setLoading(false);
+    try {
+      const [postsData, communitiesData] = await Promise.all([
+        api.posts.getAll(),
+        api.communities.getAll()
+      ]);
+      setPosts(postsData);
+      // Ambil semua komunitas untuk carousel
+      setCommunities(communitiesData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchPosts();
+    fetchData();
   }, []);
 
   return (
     <div>
-      <div className="welcome-banner mb-4">
-        <h2 className="welcome-title">Home Feed</h2>
-        <p className="welcome-text">
-          Welcome back! Bagikan ide atau acara terbaru kepada teman-temanmu.
-        </p>
-
-        {/* Tombol Buat Komunitas */}
-        {user ? (
-          <button className="btn-create-test" onClick={() => setIsCommunityModalOpen(true)}>
-            + Buat Komunitas Baru
-          </button>
-        ) : (
-          <p className="text-sm text-red-500 mt-2 font-medium">Login untuk membuat komunitas.</p>
-        )}
-      </div>
-
-      <CreateCommunityForm
-        show={isCommunityModalOpen}
-        onHide={() => setIsCommunityModalOpen(false)}
-        onSuccess={() => {
-          alert("Komunitas berhasil dibuat!");
-        }}
-      />
+      <CommunityHeroCarousel communities={communities} />
 
       {loading ? (
         <p className="state-message">Memuat postingan...</p>
@@ -75,7 +65,7 @@ const HomeContent = ({ user }: { user: any }) => {
 
 // --- MAIN HOME ---
 export default function Home() {
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
   const [currentView, setCurrentView] = useState('home');
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -122,7 +112,18 @@ export default function Home() {
 
   const renderMainContent = () => {
     if (currentView === 'signup') return <SignupForm />;
-    if (currentView === 'login') return <LoginForm />;
+    if (currentView === 'login') return <LoginForm onLoginSuccess={() => {
+      const sessionData = localStorage.getItem('userSession');
+      if (sessionData) {
+        const session = JSON.parse(sessionData);
+        setUser({
+          email: session.email,
+          role: session.role,
+          fullName: session.fullName
+        });
+      }
+      setCurrentView('home');
+    }} />;
 
     if (authLoading) return <div className="p-5 text-center text-muted">Sedang memuat...</div>;
 
@@ -138,7 +139,7 @@ export default function Home() {
 
       <div className="main-container">
         <div className="main-dashboard-layout">
-          <Sidebar activeView={currentView} onMenuClick={handleNavChange} />
+          <Sidebar activeView={currentView} onMenuClick={(view) => router.push(view === 'home' ? '/' : `/${view}`)} />
 
           <div className="main-content">
             {renderMainContent()}

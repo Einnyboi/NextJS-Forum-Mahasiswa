@@ -8,6 +8,8 @@ import CommunityCard from "@/components/features/community/CommunityCard";
 import CreateCommunityForm from "@/components/features/community/CreateCommunityForm";
 import { api, CommunityData } from '@/lib/api';
 import { Plus } from 'lucide-react';
+import LoginForm from "../Login/page";
+import SignupForm from "../signup/page";
 
 const CommunityPage = () => {
     const router = useRouter();
@@ -15,6 +17,7 @@ const CommunityPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState<any>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [currentView, setCurrentView] = useState('community');
 
     useEffect(() => {
         // Get current user from localStorage
