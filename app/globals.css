@@ -335,3 +335,61 @@ a {
         padding: 0;
     }
 }
+
+/* buat sidebar */
+/* Sembunyikan tombol hamburger secara default */
+.hamburger-button {
+    display: none; 
+}
+
+/* Sidebar selalu terlihat di layar besar */
+.sidebar-card {
+    display: block; 
+    width: 250px; 
+    height: 100vh;
+}
+@media (max-width: 1024px) {
+    /* Tampilkan tombol hamburger di layar kecil */
+    .hamburger-button {
+        display: flex; 
+        position: fixed; 
+        top: 200px;
+        left: 5px;
+        z-index: 1001;
+        cursor: pointer;
+        width: 48px; 
+        height: 48px;
+        border-radius: 50%;
+        border: 2px solid #f4f6f8;
+        background-color: #c7d6d5;
+        padding: 0;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        color: #edeff1;
+    }
+
+    /* Sidebar di layar kecil: */
+    .sidebar-card {
+        /* Default: Sembunyikan sidebar di luar layar */
+        position: fixed;
+        top: 0;
+        left: -300px; 
+        width: 300px; 
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s ease-in-out;
+        background-color: white;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+    }
+    /* Status Terbuka: Geser sidebar ke dalam viewport */
+    .sidebar-card.is-open {
+        left: 0;
+    }
+    .main-content.hamburger-button.is-open {
+        background-color: transparent !important;
+        border: none !important;
+        color: transparent !important;
+        left: 270px !important;
+    }
+}
