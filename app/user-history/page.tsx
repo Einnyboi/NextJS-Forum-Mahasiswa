@@ -118,7 +118,7 @@ export default function HistoryPage() {
                     return ( 
                         <article className="card activity-post-card p-5 mb-4 rounded-4" style={{ backgroundColor: 'var(--primary-color)' }} key={post.id}>
                             <h5 className="post-title pb-2" style={{fontSize:'var(--h5-size)'}}>
-                                <Link href={`/posts/${post.id}`}>{post.title}</Link>
+                                <Link href={`/thread/${post.id}`}>{post.title}</Link>
                             </h5>
                             
                             <div className="small text-secondary mb-2">
@@ -162,7 +162,7 @@ export default function HistoryPage() {
                     {/* KONTEN UTAMA HISTORY DITEMPATKAN DI KANAN */}
                     <div className="main-content px-5">
                         <main className="font-sans">
-                            <div className="min-vh-100 py-5" style={{ backgroundColor: 'var(--white-color)' }}>
+                            <div className="min-vh-100 rounded-4 py-5" style={{ backgroundColor: 'var(--white-color)' }}>
                                 <div className="container px-5 pb-3">
                                     <div className="mb-4">
 

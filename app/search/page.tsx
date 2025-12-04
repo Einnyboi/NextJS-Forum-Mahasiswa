@@ -4,6 +4,9 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { popularSearch } from '@/lib/searchdata'; 
 import { api } from '@/lib/api'; 
 import { Search } from 'lucide-react';
+import Link from 'next/link';
+import Navbar from '@/components/features/important/navbar';
+import Sidebar from '@/components/features/important/sidebar';
 
 // Tipe data untuk Hasil Pencarian
 type SearchResult = {
@@ -13,6 +16,7 @@ type SearchResult = {
   category: string;
   author: string;
   description: string;
+  imageUrl?: string;
 };
 
 // Tipe data untuk Komunitas/Kategori
@@ -20,7 +24,7 @@ type CommunityResult = {
   id: string;
   name: string; 
   description: string;
-  imageUrl: string;
+  imageUrl?: string;
 };
 
 export default function SearchPage() {
@@ -124,166 +128,222 @@ export default function SearchPage() {
   const showSuggestions = isFocused && !currentQuery;
   const showResults = !!currentQuery; 
 
-  const ResultItem = ({ content }: { content: SearchResult }) => (
-      <li key={content.id} className="item-search p-3 m-2 border rounded">
-          <h3 className="h6">{content.title}</h3> 
-          <p className="mb-1">
-              <small>{content.description}</small>
-          </p>
-          {/* Tampilkan info tambahan hanya untuk Post */}
-          {content.type === 'post' && (
-              <p className="mb-0 text-success">
-                  <small>by: {content.author} | in: {content.category}</small> 
-              </p>
-          )}
-          {/* Tampilkan info tambahan untuk Komunitas */}
-          {content.type === 'community' && (
-              <p className="mb-0 text-success">
-                  <small>Community: {content.category}</small> 
-              </p>
-          )}
-      </li>
-  );
+  const ResultItem = ({ content }: { content: SearchResult }) => {
+    let href = '';
+    if (content.type === 'post') {
+        href = `/thread/${content.id}`;
+    } else if (content.type === 'community') {
+        href = `/community/${content.id}`;
+    }
+    const ContentWrapper = href 
+        ? ({ children }: { children: React.ReactNode }) => (
+            <Link href={href} className="text-decoration-none text-dark">
+                {children}
+            </Link>
+        )
+        : ({ children }: { children: React.ReactNode }) => <>{children}</>;
+    
+    const displayAuthor = content.author?.trim() || '-';
+    const displayCategory = content.category?.trim() || '-';
+
+    return (
+        <li key={content.id} className="item-search p-3 m-2 border rounded d-flex align-items-start" style={{ cursor: href ? 'pointer' : 'default', gap: '15px' }}>
+            {/* BAGIAN FOTO */}
+            {content.imageUrl && (
+              <div 
+                className="image-thumbnail rounded-3 overflow-hidden" 
+                style={{ 
+                  width: '80px', 
+                  height: '80px', 
+                  flexShrink: 0 
+                }}
+              >
+                <img src={content.imageUrl} alt={content.title} style={{ width: '100%',height: '100%', objectFit: 'cover' }}/>
+              </div>
+            )}
+            {/* BAGIAN Konten */}
+            <ContentWrapper>
+              <div style={{ flexGrow: 1 }}>
+                <h3 className="h6">{content.title}</h3> 
+                <p className="mb-1">
+                    <small>{content.description}</small>
+                </p>
+                {/* Tampilkan info tambahan hanya untuk Post */}
+                {content.type === 'post' && (
+                    <p className="mb-0 text-success">
+                        <small>by: {displayAuthor} | in: {displayCategory}</small> 
+                    </p>
+                )}
+                {/* Tampilkan info tambahan untuk Komunitas */}
+                {content.type === 'community' && (
+                    <p className="mb-0 text-success">
+                        <small>Community: {content.category}</small> 
+                    </p>
+                )}
+              </div>
+            </ContentWrapper>
+        </li>
+    );
+};
 
   return (
-    <div
-      className="p-4 mx-auto"
-      style={{
-        maxWidth: '600px',
-      }}
-    >
-      {/* FORM PENCARIAN */}
-      <form 
-        onSubmit={handleSubmit} 
-        className="mb-3"
-      >
-        <div className="position-relative">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            placeholder="Searching for something?"
-            className="form-control search-input-no-focus"
-            style={{
-              padding:'15px',
-              borderRadius: '50px', 
-              paddingRight: '3rem', 
-            }}
-          />
-          <button
-            type="submit"
-            title="Search"
-            style={{
-              position: 'absolute',
-              top: '50%',
-              right: '15px', 
-              transform: 'translateY(-50%)', 
-              background: 'none',
-              border: 'none',
-              color: '#6c757d' 
-            }}
-          >
-            <Search size={25} />
-          </button>
-        </div>
-      </form>
+    <div>
+        {/* 1. NAVBAR */}
+       <Navbar 
+          onNavChange={() => {}}
+          isLoggedIn={true||false}
+          hideSearchInput={true}
+        />
+        
+        {/* 2. MAIN CONTAINER DENGAN SIDEBAR DAN KONTEN PENCARIAN */}
+        <div className="main-container hide-scrollbar">
+            <div className="main-dashboard-layout">
+                {/* SIDEBAR */}
+                <Sidebar />
+                
+                {/* KONTEN UTAMA SEARCH PAGE */}
+                <div className="main-content">
+                    <div
+                        className="p-4 mx-auto"
+                        style={{
+                            maxWidth: '1000px',
+                        }}
+                    >
+                        {/* FORM PENCARIAN */}
+                        <form 
+                            onSubmit={handleSubmit} 
+                            className="mb-3"
+                        >
+                            <div className="position-relative">
+                                <input
+                                    type="text"
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onFocus={handleFocus}
+                                    onBlur={handleBlur}
+                                    placeholder="Searching for something?"
+                                    className="form-control search-input-no-focus"
+                                    style={{
+                                        padding:'15px',
+                                        borderRadius: '50px', 
+                                        paddingRight: '3rem', 
+                                    }}
+                                />
+                                <button
+                                    type="submit"
+                                    title="Search"
+                                    style={{
+                                        position: 'absolute',
+                                        top: '50%',
+                                        right: '15px', 
+                                        transform: 'translateY(-50%)', 
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#6c757d' 
+                                    }}
+                                >
+                                    <Search size={25} />
+                                </button>
+                            </div>
+                        </form>
 
-      {/* BAGIAN SUGGESTIONS */}
-      {showSuggestions && (
-        <div
-          className="suggestions border bg-white p-3 ms-4 me-auto" 
-          style={{
-            maxWidth: '500px',
-            marginTop:'-20px'
-          }}
-        >
-          <h3 className="h5">Popular Categories</h3>
-          {isLoadingCategories ? (
-            <p className="text-muted">Loading categories...</p>
-          ) : (
-            <ul className="list-unstyled p-0"> 
-              {/* MENGGUNAKAN DATA DARI API: categoriesList */}
-              {categoriesList.map((category) => (
-                <li
-                  key={category.id} 
-                  onClick={() => handleSuggestionClick(category.name)}
-                  className="suggestion-item py-1" 
-                  style={{ cursor: 'pointer', fontSize: '0.9rem' }} 
-                >
-                  {category.name}
-                </li>
-              ))}
-            </ul>
-          )}
-          
-          <hr className="my-3" />
-          <h3 className="h5">Popular Searches</h3>
-          <ul className="list-unstyled p-0"> 
-            {popularSearch.map((term) => (
-              <li
-                key={term}
-                onClick={() => handleSuggestionClick(term)}
-                className="suggestion-item py-1" 
-                style={{ cursor: 'pointer', fontSize: '0.9rem' }} 
-              >
-                {term}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                        {/* BAGIAN SUGGESTIONS */}
+                        {showSuggestions && (
+                            <div
+                                className="suggestions border bg-white p-3 ms-1 me-auto rounded-4" 
+                                style={{
+                                    maxWidth: '1000px',
+                                    marginTop:'5px'
+                                }}
+                            >
+                                <h3 className="h5">Popular Categories</h3>
+                                {isLoadingCategories ? (
+                                    <p className="text-muted">Loading categories...</p>
+                                ) : (
+                                    <ul className="list-unstyled p-0"> 
+                                        {categoriesList.map((category) => (
+                                            <li
+                                                key={category.id} 
+                                                onClick={() => handleSuggestionClick(category.name)}
+                                                className="suggestion-item py-1" 
+                                                style={{ cursor: 'pointer', fontSize: '0.9rem' }} 
+                                            >
+                                                {category.name}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                
+                                <hr className="my-3" />
+                                <h3 className="h5">Popular Searches</h3>
+                                <ul className="list-unstyled p-0"> 
+                                    {popularSearch.map((term) => (
+                                        <li
+                                            key={term}
+                                            onClick={() => handleSuggestionClick(term)}
+                                            className="suggestion-item py-1" 
+                                            style={{ cursor: 'pointer', fontSize: '0.9rem' }} 
+                                        >
+                                            {term}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
 
-      {/* HASIL PENCARIAN */}
-      {showResults && (
-        <div
-          className="results border bg-white p-3 ms-4 me-auto" 
-          style={{
-            maxWidth: '500px', 
-            marginTop:'-20px'
-          }}
-        >
-          {isLoading ? (
-            <p>Searching...</p>
-          ) : (
-            <>
-              <h2 className="h6 mb-3 border-bottom pb-2"> 
-                {`Results for: "${currentQuery}"`}
-              </h2>
+                        {/* HASIL PENCARIAN */}
+                        {showResults && (
+                            <div
+                                className="results border bg-white p-3 ms-1 me-auto rounded-4" 
+                                style={{
+                                    maxWidth: '1000px', 
+                                    marginTop:'5px'
+                                }}
+                            >
+                                {isLoading ? (
+                                    <p>Searching...</p>
+                                ) : (
+                                    <>
+                                        <h2 className="h6 mb-3 border-bottom pb-2"> 
+                                            {`Results for: "${currentQuery}"`}
+                                        </h2>
 
-              {/* TAMPILAN 1: KOMUNITAS */}
-              {groupedResults.communities.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="h6 text-dark fw-bold">Communities ({groupedResults.communities.length})</h3>
-                  <ul className="list-unstyled p-0"> 
-                    {groupedResults.communities.map((content) => (
-                      <ResultItem key={content.id} content={content} />
-                    ))}
-                  </ul>
+                                        {/* TAMPILAN 1: KOMUNITAS */}
+                                        {groupedResults.communities.length > 0 && (
+                                            <div className="mb-4">
+                                                <h3 className="h6 text-dark fw-bold">Communities ({groupedResults.communities.length})</h3>
+                                                <ul className="list-unstyled p-0"> 
+                                                    {groupedResults.communities.map((content) => (
+                                                        <ResultItem key={content.id} content={content} />
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {/* TAMPILAN 2: POSTINGAN */}
+                                        {groupedResults.posts.length > 0 && (
+                                            <div className="mb-4">
+                                                <h3 className="h6 text-dark fw-bold">Posts ({groupedResults.posts.length})</h3>
+                                                <ul className="list-unstyled p-0"> 
+                                                    {groupedResults.posts.map((content) => (
+                                                        <ResultItem key={content.id} content={content} />
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {/* KONDISI TIDAK ADA HASIL SAMA SEKALI */}
+                                        {(groupedResults.communities.length === 0 && groupedResults.posts.length === 0) && (
+                                            <p>No results found matching your query.</p>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
-              )}
-
-              {/* TAMPILAN 2: POSTINGAN */}
-              {groupedResults.posts.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="h6 text-dark fw-bold">Posts ({groupedResults.posts.length})</h3>
-                  <ul className="list-unstyled p-0"> 
-                    {groupedResults.posts.map((content) => (
-                      <ResultItem key={content.id} content={content} />
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* KONDISI TIDAK ADA HASIL SAMA SEKALI */}
-              {(groupedResults.communities.length === 0 && groupedResults.posts.length === 0) && (
-                <p>No results found matching your query.</p>
-              )}
-            </>
-          )}
+            </div>
         </div>
-      )}
     </div>
   );
 }
