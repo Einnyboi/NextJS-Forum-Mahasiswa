@@ -131,8 +131,7 @@ export default function AdminDashboardPage() {
             <div className="col-md-8">
               <h3 className="h5 fw-semibold mb-2">Selamat Datang kembali, Admin!</h3>
               <p className="text-muted mb-0">
-                Anda sedang menggunakan tampilan <strong>Navbar Horizontal</strong>.
-                Gunakan menu di bagian atas untuk berpindah halaman.
+                Gunakan panel ini untuk mengatur forum dan memastikan semuanya berjalan lancar.
               </p>
             </div>
             <div className="col-md-4 text-end">
