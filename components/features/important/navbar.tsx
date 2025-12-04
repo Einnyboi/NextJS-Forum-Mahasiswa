@@ -6,7 +6,7 @@ import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import { Search, Github as User, LogOut, History } from 'lucide-react';
+import { Search, Github as User, LogOut, History, X } from 'lucide-react';
 
 interface AppNavbarProps
 {
@@ -16,6 +16,8 @@ interface AppNavbarProps
 
 function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps) 
 {
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+
     const handleLoginClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     {
         e.preventDefault();
@@ -31,6 +33,21 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
     const handleLogout = () => {
         localStorage.removeItem('userSession');
         window.location.href = '/';
+    };
+
+    const handleLogoutClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowLogoutModal(true);
+    };
+
+    const confirmLogout = () => {
+        setShowLogoutModal(false);
+        handleLogout();
+    };
+
+    const cancelLogout = () => {
+        setShowLogoutModal(false);
     };
 
     const checking = () =>
@@ -55,11 +72,7 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                         <NavDropdown.Divider />
                         <NavDropdown.Item 
                             as="button"
-                            onClick={(e: React.MouseEvent) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleLogout();
-                            }}
+                            onClick={handleLogoutClick}
                             type="button"
                         >
                             <LogOut size={18} className="me-2" />
@@ -116,6 +129,27 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     {checking()}
                 </Container>
             </Navbar>
+
+            {/* Logout Confirmation Modal */}
+            {showLogoutModal && (
+                <div className="logout-modal-overlay" onClick={cancelLogout}>
+                    <div className="logout-modal" onClick={(e) => e.stopPropagation()}>
+                        <button className="modal-close" onClick={cancelLogout}>
+                            <X size={20} />
+                        </button>
+                        <h3>Leaving the conversation early?</h3>
+                        <p>Are you sure you want to log out? We'll miss you!</p>
+                        <div className="modal-actions">
+                            <button className="btn-cancel" onClick={cancelLogout}>
+                                Stay
+                            </button>
+                            <button className="btn-logout" onClick={confirmLogout}>
+                                Log Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             
             <style jsx global>
             {`
@@ -302,6 +336,124 @@ function AppNavbar({ onNavChange, isLoggedIn }: AppNavbarProps)
                     {
                         margin-right: 0.5rem;
                     }
+                }
+
+                /* Logout Modal Styles */
+                .logout-modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(12, 18, 12, 0.6);
+                    backdrop-filter: blur(4px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 2000;
+                    animation: fadeIn 0.2s ease;
+                }
+
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                    }
+                    to {
+                        opacity: 1;
+                    }
+                }
+
+                .logout-modal {
+                    background: #ecebf3;
+                    border-radius: 16px;
+                    padding: 32px;
+                    max-width: 400px;
+                    width: 90%;
+                    box-shadow: 0 20px 60px rgba(12, 18, 12, 0.3);
+                    position: relative;
+                    animation: slideUp 0.3s ease;
+                }
+
+                @keyframes slideUp {
+                    from {
+                        transform: translateY(20px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                .modal-close {
+                    position: absolute;
+                    top: 16px;
+                    right: 16px;
+                    background: transparent;
+                    border: none;
+                    color: #6c757d;
+                    cursor: pointer;
+                    padding: 4px;
+                    border-radius: 4px;
+                    transition: all 0.2s;
+                }
+
+                .modal-close:hover {
+                    background: #d5d4dc;
+                    color: #0c120c;
+                }
+
+                .logout-modal h3 {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: #0c120c;
+                    margin: 0 0 12px 0;
+                }
+
+                .logout-modal p {
+                    color: #6c757d;
+                    margin: 0 0 24px 0;
+                    font-size: 1rem;
+                    line-height: 1.5;
+                }
+
+                .modal-actions {
+                    display: flex;
+                    gap: 12px;
+                    justify-content: flex-end;
+                }
+
+                .btn-cancel,
+                .btn-logout {
+                    padding: 10px 24px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    font-size: 0.95rem;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    border: none;
+                }
+
+                .btn-cancel {
+                    background: white;
+                    color: #0c120c;
+                    border: 2px solid #d5d4dc;
+                }
+
+                .btn-cancel:hover {
+                    background: #f5f5f5;
+                    border-color: #c7d6d5;
+                }
+
+                .btn-logout {
+                    background: #dc3545;
+                    color: white;
+                }
+
+                .btn-logout:hover {
+                    background: #c82333;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
                 }
             `}
             </style>
