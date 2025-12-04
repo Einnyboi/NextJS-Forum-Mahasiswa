@@ -241,27 +241,6 @@ const Signup: React.FC = () =>
                     text-align: center;
                     font-weight: 500;
                 }
-                
-                .auth-footer
-                {
-                    text-align: center;
-                    margin-top: 2rem;
-                    color: rgba(12, 18, 12, 0.6);
-                    font-family: var(--secondary-font);
-                }
-                
-                .auth-footer a
-                {
-                    color: var(--secondary-color);
-                    font-weight: 600;
-                    text-decoration: none;
-                    transition: color 0.2s;
-                }
-                
-                .auth-footer a:hover
-                {
-                    color: #a00110; 
-                }
             `}
             </style>
             
@@ -335,10 +314,6 @@ const Signup: React.FC = () =>
                         {loading ? 'Creating Account...' : 'Create Account'}
                     </button>
                 </form>
-
-                <div className="auth-footer">
-                    Already have an account? <a href="#">Log in here</a>
-                </div>
             </div>
         </div>
     );
